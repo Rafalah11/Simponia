@@ -11,6 +11,7 @@ import { StatusVerifikasiModule } from './status_verifikasi/status_verifikasi.mo
 import { LoginModule } from './login/login.module';
 import { AuthModule } from './auth/auth.module';
 import { AcaraModule } from './acara/acara.module';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AcaraModule } from './acara/acara.module';
     LoginModule,
     AuthModule,
     AcaraModule,
+    DatabaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
