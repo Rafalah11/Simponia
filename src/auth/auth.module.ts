@@ -12,7 +12,6 @@ import { RolesGuard } from './roles.guard';
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '1h' },
     }),
   ],
   providers: [AuthService, JwtStrategy, RolesGuard],

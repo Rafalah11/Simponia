@@ -14,7 +14,7 @@ export class LoginController {
         createLoginDto.nim,
         createLoginDto.password,
       );
-      return this.authService.login(user);
+      return this.authService.login(user, createLoginDto.rememberMe);
     } catch (error) {
       throw new UnauthorizedException({
         statusCode: 401,

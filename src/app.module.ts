@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
@@ -39,4 +39,25 @@ import { AcaraModule } from './acara/acara.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply((req, res, next) => {
+        if (req.method === 'OPTIONS') {
+          res.header('Access-Control-Allow-Origin', 'http://localhost:3001');
+          res.header(
+            'Access-Control-Allow-Methods',
+            'GET,POST,PUT,DELETE,OPTIONS',
+          );
+          res.header(
+            'Access-Control-Allow-Headers',
+            'Content-Type, Authorization',
+          );
+          res.status(200).end();
+        } else {
+          next();
+        }
+      })
+      .forRoutes('*');
+  }
+}

@@ -9,16 +9,16 @@ export class LoginService {
 
   async login(createLoginDto: CreateLoginDto): Promise<Login> {
     try {
-      // Validate user credentials
+      // Validasi kredensial pengguna
       const user = await this.authService.validateUser(
         createLoginDto.nim,
         createLoginDto.password,
       );
 
-      // If valid, generate and return token
-      return this.authService.login(user);
+      // Jika valid, hasilkan dan kembalikan token
+      return this.authService.login(user, createLoginDto.rememberMe);
     } catch (error) {
-      // Handle specific error messages
+      // Tangani pesan error spesifik
       if (error instanceof UnauthorizedException) {
         throw new UnauthorizedException({
           statusCode: 401,
@@ -26,7 +26,7 @@ export class LoginService {
           error: 'Unauthorized',
         });
       }
-      // For other unexpected errors
+      // Untuk error tak terduga lainnya
       throw new UnauthorizedException({
         statusCode: 401,
         message: 'Login failed',
