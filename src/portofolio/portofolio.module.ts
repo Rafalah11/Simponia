@@ -7,6 +7,7 @@ import { PortofolioAnggota } from '../portofolio-anggota/entities/portofolio-ang
 import { DetailProject } from '../detail-project/entities/detail-project.entity/detail-project.entity';
 import { Tag } from '../tags/entities/tag.entity/tag.entity';
 import { User } from '../user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
 
 @Module({
   imports: [
@@ -19,6 +20,6 @@ import { User } from '../user/entities/user.entity';
     ]),
   ],
   controllers: [PortofolioController],
-  providers: [PortofolioService],
+  providers: [PortofolioService, UserService],
 })
 export class PortofolioModule {}

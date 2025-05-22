@@ -18,6 +18,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PortofolioService } from './portofolio.service';
+import { UserService } from '../user/user.service'; // Tambahkan import UserService
 import { CreatePortofolioDto } from './dto/create-portofolio.dto';
 import { UpdatePortofolioDto } from './dto/update-portofolio.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -37,11 +38,15 @@ export class UnauthorizedExceptionFilter implements ExceptionFilter {
     });
   }
 }
+
 @Controller('portofolio')
 @UseGuards(AuthGuard('jwt'))
 @UseFilters(new UnauthorizedExceptionFilter())
 export class PortofolioController {
-  constructor(private readonly portofolioService: PortofolioService) {}
+  constructor(
+    private readonly portofolioService: PortofolioService,
+    private readonly userService: UserService, // Tambahkan UserService ke constructor
+  ) {}
 
   @Post()
   create(
@@ -58,6 +63,26 @@ export class PortofolioController {
   @Get()
   findAll(@Req() req: AuthRequest) {
     return this.portofolioService.findAll();
+  }
+
+  @Get('user')
+  async findAllUsers() {
+    try {
+      const users = await this.userService.findAll();
+      if (!users || users.length === 0) {
+        throw new NotFoundException('Tidak ada data pengguna ditemukan');
+      }
+      return users;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException({
+          statusCode: 404,
+          message: error.message,
+          error: 'Not Found',
+        });
+      }
+      throw error;
+    }
   }
 
   @Get(':id')
