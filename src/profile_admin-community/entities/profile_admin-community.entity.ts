@@ -56,4 +56,11 @@ export class ProfileAdminCommunity {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @Column({
+    name: 'profile_picture',
+    length: 255,
+    nullable: true,
+  })
+  profilePicture: string;
 }

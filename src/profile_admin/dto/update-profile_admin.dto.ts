@@ -1,13 +1,4 @@
-export class UpdateProfileAdminDto {
-  readonly user_id?: string;
-  readonly nama?: string;
-  readonly noHandphone?: string;
-  readonly gender?: 'L' | 'P';
-  readonly tanggalLahir?: Date;
-  readonly kota?: string;
-  readonly keterangan?: string;
-  readonly linkedin?: string;
-  readonly instagram?: string;
-  readonly email?: string;
-  readonly github?: string;
-}
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateProfileAdminDto } from './create-profile_admin.dto';
+
+export class UpdateProfileAdminDto extends PartialType(CreateProfileAdminDto) {}

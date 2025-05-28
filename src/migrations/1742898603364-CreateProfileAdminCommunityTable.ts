@@ -18,6 +18,7 @@ export class CreateProfileAdminCommunityTable1742898603364
                 instagram VARCHAR(255) NULL,
                 email VARCHAR(255) NOT NULL,
                 github VARCHAR(255) NULL,
+                profile_picture VARCHAR(255) NULL,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (id),

@@ -10,13 +10,17 @@ import {
   Req,
   ForbiddenException,
   NotFoundException,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { ProfileUserService } from './profile_user.service';
 import { CreateProfileUserDto } from './dto/create-profile_user.dto';
 import { UpdateProfileUserDto } from './dto/update-profile_user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthRequest } from '../auth/interfaces/auth-request.interface';
-import { User, UserRole } from 'src/user/entities/user.entity';
+import { UserRole } from 'src/user/entities/user.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerConfig } from 'src/config/multer.config';
 
 @Controller('profile-user')
 @UseGuards(AuthGuard('jwt'))
@@ -24,36 +28,40 @@ export class ProfileUserController {
   constructor(private readonly profileUserService: ProfileUserService) {}
 
   @Post()
+  @UseInterceptors(FileInterceptor('profilePicture', multerConfig('user'))) // Gunakan folder 'user'
   async create(
-    @Body() createProfileUserDto: CreateProfileUserDto,
+    @Body() FormData: CreateProfileUserDto,
+    @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthRequest,
   ) {
-    // Pastikan hanya mahasiswa yang bisa membuat profile
     if (req.user.role !== UserRole.MAHASISWA) {
       throw new ForbiddenException('Hanya mahasiswa yang bisa membuat profile');
     }
 
-    const newProfileDto = {
-      ...createProfileUserDto,
+    const createProfileDto: CreateProfileUserDto = {
+      ...FormData,
       user_id: req.user.id,
+      tanggalLahir: new Date(FormData.tanggalLahir),
+      profilePicture: file, // Gunakan file langsung
     };
 
-    return this.profileUserService.create(newProfileDto);
+    return this.profileUserService.create(createProfileDto);
   }
 
   @Post(':id')
+  @UseInterceptors(FileInterceptor('profilePicture', multerConfig('user'))) // Gunakan folder 'user'
   async createWithId(
     @Body() createProfileUserDto: CreateProfileUserDto,
+    @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthRequest,
   ) {
-    // Pastikan hanya mahasiswa yang bisa membuat profile
     if (req.user.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Hanya ADMIN yang bisa membuat profile');
     }
 
     const newProfileDto = {
       ...createProfileUserDto,
-      user_id: req.user.id,
+      profilePicture: file,
     };
 
     return this.profileUserService.create(newProfileDto);
@@ -67,7 +75,6 @@ export class ProfileUserController {
       );
     }
     if (req.user.role === UserRole.ADMIN) {
-      // Role 1: ADMIN - bisa lihat semua data
       return this.profileUserService.findAll();
     }
     const profile = await this.profileUserService.findByUserId(req.user.id);
@@ -82,7 +89,6 @@ export class ProfileUserController {
   async findOne(@Param('id') id: string, @Req() req: AuthRequest) {
     const profile = await this.profileUserService.findOne(id);
 
-    // Admin bisa melihat semua profile
     if (req.user.role !== UserRole.ADMIN && profile.user.id !== req.user.id) {
       throw new ForbiddenException('Anda hanya bisa mengakses data sendiri');
     }
@@ -91,9 +97,11 @@ export class ProfileUserController {
   }
 
   @Put(':id')
+  @UseInterceptors(FileInterceptor('profilePicture', multerConfig('user'))) // Gunakan folder 'user'
   async update(
     @Param('id') id: string,
     @Body() updateProfileUserDto: UpdateProfileUserDto,
+    @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthRequest,
   ) {
     if (req.user.role === UserRole.ADMIN_COMMUNITY) {
@@ -101,9 +109,9 @@ export class ProfileUserController {
         'Hanya Mahasiswa yang dapat menampilkan informasi ini',
       );
     }
+
     const existingProfile = await this.profileUserService.findOne(id);
 
-    // Hanya admin atau pemilik profile yang bisa update
     if (
       req.user.role !== UserRole.ADMIN &&
       existingProfile.user.id !== req.user.id
@@ -113,7 +121,8 @@ export class ProfileUserController {
 
     const updatedDto = {
       ...updateProfileUserDto,
-      user_id: existingProfile.user.id, // Pastikan user_id tidak berubah
+      user_id: existingProfile.user.id,
+      profilePicture: file,
     };
 
     return this.profileUserService.update(id, updatedDto);
@@ -123,7 +132,6 @@ export class ProfileUserController {
   async remove(@Param('id') id: string, @Req() req: AuthRequest) {
     const existingProfile = await this.profileUserService.findOne(id);
 
-    // Hanya admin yang bisa menghapus profile
     if (req.user.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Hanya admin yang bisa menghapus profile');
     }

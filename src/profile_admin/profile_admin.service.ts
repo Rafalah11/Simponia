@@ -40,10 +40,8 @@ export class ProfileAdminService {
       );
     }
 
-    // Validasi role
     this.checkRoleIsAdmin(user.role);
 
-    // Check if email already exists
     const existingProfile = await this.profileAdminRepository.findOne({
       where: { email: createProfileAdminDto.email },
     });
@@ -51,15 +49,21 @@ export class ProfileAdminService {
       throw new BadRequestException('Email sudah digunakan');
     }
 
-    const profile = this.profileAdminRepository.create({
+    const profileData = {
       ...createProfileAdminDto,
       user: user,
-    });
+      tanggalLahir: new Date(createProfileAdminDto.tanggalLahir),
+      profilePicture: createProfileAdminDto.profilePicture?.filename,
+    };
+
+    const profile = this.profileAdminRepository.create(profileData);
 
     try {
       return await this.profileAdminRepository.save(profile);
     } catch (error) {
-      throw new BadRequestException('Gagal membuat profile admin');
+      throw new BadRequestException(
+        `Gagal membuat profile admin: ${error.message}`,
+      );
     }
   }
 
@@ -92,7 +96,6 @@ export class ProfileAdminService {
       );
     }
 
-    // Validasi role user yang terkait
     this.checkRoleIsAdmin(profile.user.role);
 
     if (updateProfileAdminDto.user_id) {
@@ -112,11 +115,19 @@ export class ProfileAdminService {
       profile.user = user;
     }
 
+    const updateData = {
+      ...profile,
+      ...updateProfileAdminDto,
+      ...(updateProfileAdminDto.tanggalLahir && {
+        tanggalLahir: new Date(updateProfileAdminDto.tanggalLahir),
+      }),
+      profilePicture:
+        updateProfileAdminDto.profilePicture?.filename ||
+        profile.profilePicture,
+    };
+
     try {
-      await this.profileAdminRepository.save({
-        ...profile,
-        ...updateProfileAdminDto,
-      });
+      await this.profileAdminRepository.save(updateData);
       return this.findOne(id);
     } catch (error) {
       throw new BadRequestException('Gagal mengupdate profile admin');
@@ -135,7 +146,6 @@ export class ProfileAdminService {
       );
     }
 
-    // Validasi role sebelum menghapus
     this.checkRoleIsAdmin(profile.user.role);
 
     try {
@@ -149,6 +159,7 @@ export class ProfileAdminService {
       throw new BadRequestException('Gagal menghapus profile admin');
     }
   }
+
   async findByUserId(userId: string): Promise<ProfileAdmin | null> {
     return this.profileAdminRepository.findOne({
       where: { user: { id: userId } },

@@ -51,6 +51,9 @@ export class ProfileUser {
   @Column({ length: 255, nullable: true })
   github: string;
 
+  @Column({ name: 'profile_picture', length: 255, nullable: true })
+  profilePicture: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

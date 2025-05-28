@@ -31,7 +31,7 @@ export class ProfileUserService {
   async create(createProfileUserDto: CreateProfileUserDto) {
     const user = await this.userRepository.findOne({
       where: { id: createProfileUserDto.user_id },
-      select: ['id', 'role'], // Hanya ambil field yang diperlukan
+      select: ['id', 'role'],
     });
 
     if (!user) {
@@ -40,10 +40,8 @@ export class ProfileUserService {
       );
     }
 
-    // Validasi role
     this.checkRoleIsMahasiswa(user.role);
 
-    // Check if email already exists
     const existingProfile = await this.profileUserRepository.findOne({
       where: { email: createProfileUserDto.email },
     });
@@ -51,10 +49,13 @@ export class ProfileUserService {
       throw new BadRequestException('Email sudah digunakan');
     }
 
-    const profile = this.profileUserRepository.create({
+    const profileData = {
       ...createProfileUserDto,
       user: user,
-    });
+      profilePicture: createProfileUserDto.profilePicture?.filename,
+    };
+
+    const profile = this.profileUserRepository.create(profileData);
 
     try {
       return await this.profileUserRepository.save(profile);

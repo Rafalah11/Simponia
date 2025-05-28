@@ -39,11 +39,11 @@ export class StatusVerifikasiController {
 
   @Get()
   findAll(@Req() req: AuthRequest) {
-    if (req.user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException(
-        'Hanya Admin yang dapaat Mengakses fitur ini!',
-      );
-    }
+    // if (req.user.role !== UserRole.ADMIN) {
+    //   throw new ForbiddenException(
+    //     'Hanya Admin yang dapaat Mengakses fitur ini!',
+    //   );
+    // }
     return this.statusVerifikasiService.findAll();
   }
 

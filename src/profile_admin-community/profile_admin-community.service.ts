@@ -40,10 +40,8 @@ export class ProfileAdminCommunityService {
       );
     }
 
-    // Validasi role
     this.checkRoleIsAdminCommunity(user.role);
 
-    // Check if email already exists
     const existingProfile = await this.profileAdminCommunityRepository.findOne({
       where: { email: createProfileAdminCommunityDto.email },
     });
@@ -51,15 +49,21 @@ export class ProfileAdminCommunityService {
       throw new BadRequestException('Email sudah digunakan');
     }
 
-    const profile = this.profileAdminCommunityRepository.create({
+    const profileData = {
       ...createProfileAdminCommunityDto,
       user: user,
-    });
+      tanggalLahir: new Date(createProfileAdminCommunityDto.tanggalLahir),
+      profilePicture: createProfileAdminCommunityDto.profilePicture?.filename,
+    };
+
+    const profile = this.profileAdminCommunityRepository.create(profileData);
 
     try {
       return await this.profileAdminCommunityRepository.save(profile);
     } catch (error) {
-      throw new BadRequestException('Gagal membuat profile admin community');
+      throw new BadRequestException(
+        `Gagal membuat profile admin community: ${error.message}`,
+      );
     }
   }
 
@@ -95,7 +99,6 @@ export class ProfileAdminCommunityService {
       );
     }
 
-    // Validasi role user yang terkait
     this.checkRoleIsAdminCommunity(profile.user.role);
 
     if (updateProfileAdminCommunityDto.user_id) {
@@ -115,11 +118,17 @@ export class ProfileAdminCommunityService {
       profile.user = user;
     }
 
+    const updateData = {
+      ...profile,
+      ...updateProfileAdminCommunityDto,
+      ...(updateProfileAdminCommunityDto.tanggalLahir && {
+        tanggalLahir: new Date(updateProfileAdminCommunityDto.tanggalLahir),
+      }),
+      profilePicture: updateProfileAdminCommunityDto.profilePicture?.filename,
+    };
+
     try {
-      await this.profileAdminCommunityRepository.save({
-        ...profile,
-        ...updateProfileAdminCommunityDto,
-      });
+      await this.profileAdminCommunityRepository.save(updateData);
       return this.findOne(id);
     } catch (error) {
       throw new BadRequestException('Gagal mengupdate profile admin community');

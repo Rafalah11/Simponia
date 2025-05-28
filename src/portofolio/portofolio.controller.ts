@@ -16,14 +16,19 @@ import {
   ExceptionFilter,
   UseFilters,
   NotFoundException,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PortofolioService } from './portofolio.service';
-import { UserService } from '../user/user.service'; // Tambahkan import UserService
+import { UserService } from '../user/user.service';
 import { CreatePortofolioDto } from './dto/create-portofolio.dto';
 import { UpdatePortofolioDto } from './dto/update-portofolio.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthRequest } from 'src/auth/interfaces/auth-request.interface';
 import { Response } from 'express';
+import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerConfig } from 'src/config/multer.config';
 
 @Catch(UnauthorizedException)
 export class UnauthorizedExceptionFilter implements ExceptionFilter {
@@ -31,7 +36,6 @@ export class UnauthorizedExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    // Kembalikan respons kustom
     response.status(401).json({
       statusCode: 401,
       message: 'Anda belum login / tidak memiliki token',
@@ -45,17 +49,37 @@ export class UnauthorizedExceptionFilter implements ExceptionFilter {
 export class PortofolioController {
   constructor(
     private readonly portofolioService: PortofolioService,
-    private readonly userService: UserService, // Tambahkan UserService ke constructor
+    private readonly userService: UserService,
   ) {}
 
   @Post()
-  create(
+  @UseInterceptors(FileInterceptor('gambar', multerConfig('portofolio')))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: CreatePortofolioDto })
+  async create(
     @Body() createPortofolioDto: CreatePortofolioDto,
+    @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthRequest,
   ) {
-    const newPortofolioDto = {
+    // Parse anggota, detail_project, dan tags dari string JSON jika ada
+    if (createPortofolioDto.anggota) {
+      createPortofolioDto.anggota = JSON.parse(
+        createPortofolioDto.anggota as any,
+      );
+    }
+    if (createPortofolioDto.detail_project) {
+      createPortofolioDto.detail_project = JSON.parse(
+        createPortofolioDto.detail_project as any,
+      );
+    }
+    if (createPortofolioDto.tags) {
+      createPortofolioDto.tags = JSON.parse(createPortofolioDto.tags as any);
+    }
+
+    const newPortofolioDto: CreatePortofolioDto = {
       ...createPortofolioDto,
       user_id: req.user.id,
+      gambar: file ? file.filename : undefined, // Simpan nama file jika ada
     };
     return this.portofolioService.create(newPortofolioDto);
   }
@@ -99,12 +123,35 @@ export class PortofolioController {
   }
 
   @Put(':id')
-  update(
+  @UseInterceptors(FileInterceptor('gambar', multerConfig('portofolio')))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: CreatePortofolioDto })
+  async update(
     @Param('id') id: string,
     @Body() updatePortofolioDto: UpdatePortofolioDto,
+    @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthRequest,
   ) {
-    return this.portofolioService.update(id, updatePortofolioDto);
+    // Parse anggota, detail_project, dan tags dari string JSON jika ada
+    if (updatePortofolioDto.anggota) {
+      updatePortofolioDto.anggota = JSON.parse(
+        updatePortofolioDto.anggota as any,
+      );
+    }
+    if (updatePortofolioDto.detail_project) {
+      updatePortofolioDto.detail_project = JSON.parse(
+        updatePortofolioDto.detail_project as any,
+      );
+    }
+    if (updatePortofolioDto.tags) {
+      updatePortofolioDto.tags = JSON.parse(updatePortofolioDto.tags as any);
+    }
+
+    const updatedDto: UpdatePortofolioDto = {
+      ...updatePortofolioDto,
+      gambar: file ? file.filename : updatePortofolioDto.gambar, // Gunakan file baru jika ada
+    };
+    return this.portofolioService.update(id, updatedDto);
   }
 
   @Delete(':id')

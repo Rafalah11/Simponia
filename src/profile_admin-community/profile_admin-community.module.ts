@@ -9,5 +9,6 @@ import { User } from 'src/user/entities/user.entity';
   imports: [TypeOrmModule.forFeature([ProfileAdminCommunity, User])],
   controllers: [ProfileAdminCommunityController],
   providers: [ProfileAdminCommunityService],
+  exports: [TypeOrmModule, ProfileAdminCommunityService],
 })
 export class ProfileAdminCommunityModule {}

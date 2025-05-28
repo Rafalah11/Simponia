@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
+import { User } from '../../user/entities/user.entity';
 import { PortofolioAnggota } from '../../portofolio-anggota/entities/portofolio-anggota.entity/portofolio-anggota.entity';
 import { DetailProject } from '../../detail-project/entities/detail-project.entity/detail-project.entity';
 import { Tag } from '../../tags/entities/tag.entity/tag.entity';
@@ -36,7 +46,7 @@ export class Portofolio {
   @Column('text', { nullable: true })
   deskripsi: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
   @Column({
@@ -45,6 +55,10 @@ export class Portofolio {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updated_at: Date;
+
+  @ManyToOne(() => User, (user) => user.portofolios)
+  @JoinColumn({ name: 'id' }) // Tentukan nama kolom foreign key sebagai 'user_id'
+  user: User;
 
   @OneToMany(() => PortofolioAnggota, (anggota) => anggota.portofolio, {
     cascade: true,

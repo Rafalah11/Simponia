@@ -7,11 +7,13 @@ import { Portofolio } from './entities/portofolio.entity';
 import { PortofolioAnggota } from '../portofolio-anggota/entities/portofolio-anggota.entity/portofolio-anggota.entity';
 import { DetailProject } from '../detail-project/entities/detail-project.entity/detail-project.entity';
 import { Tag } from '../tags/entities/tag.entity/tag.entity';
-import { User } from '../user/entities/user.entity';
+import { User, UserRole } from '../user/entities/user.entity';
+import { ProfileUser } from '../profile_user/entities/profile_user.entity';
+import { ProfileAdmin } from '../profile_admin/entities/profile_admin.entity';
+import { ProfileAdminCommunity } from '../profile_admin-community/entities/profile_admin-community.entity';
 
 @Injectable()
 export class PortofolioService {
-  // userRepository: any;
   constructor(
     @InjectRepository(Portofolio)
     private readonly portofolioRepository: Repository<Portofolio>,
@@ -23,10 +25,47 @@ export class PortofolioService {
     private readonly detailProjectRepository: Repository<DetailProject>,
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
+    @InjectRepository(ProfileUser)
+    private readonly profileUserRepository: Repository<ProfileUser>,
+    @InjectRepository(ProfileAdmin)
+    private readonly profileAdminRepository: Repository<ProfileAdmin>,
+    @InjectRepository(ProfileAdminCommunity)
+    private readonly profileAdminCommunityRepository: Repository<ProfileAdminCommunity>,
   ) {}
 
+  private async getUserName(
+    userId: string,
+    role: UserRole,
+  ): Promise<string | null> {
+    if (role === UserRole.MAHASISWA) {
+      const profile = await this.profileUserRepository.findOne({
+        where: { user: { id: userId } },
+      });
+      return profile?.nama || null;
+    } else if (role === UserRole.ADMIN) {
+      const profile = await this.profileAdminRepository.findOne({
+        where: { user: { id: userId } },
+      });
+      return profile?.nama || null;
+    } else if (role === UserRole.ADMIN_COMMUNITY) {
+      const profile = await this.profileAdminCommunityRepository.findOne({
+        where: { user: { id: userId } },
+      });
+      return profile?.nama || null;
+    }
+    return null;
+  }
+
   async create(createPortofolioDto: CreatePortofolioDto) {
-    // Create main portofolio
+    const user = await this.userRepository.findOne({
+      where: { id: createPortofolioDto.user_id },
+    });
+    if (!user) {
+      throw new NotFoundException(
+        `User dengan ID ${createPortofolioDto.user_id} tidak ditemukan`,
+      );
+    }
+
     const portofolio = this.portofolioRepository.create({
       nama_projek: createPortofolioDto.nama_projek,
       kategori: createPortofolioDto.kategori,
@@ -34,11 +73,11 @@ export class PortofolioService {
       status: createPortofolioDto.status || 'Belum di Verifikasi',
       gambar: createPortofolioDto.gambar,
       deskripsi: createPortofolioDto.deskripsi,
+      user: user,
     });
 
     const savedPortofolio = await this.portofolioRepository.save(portofolio);
 
-    // Handle anggota
     if (createPortofolioDto.anggota && createPortofolioDto.anggota.length > 0) {
       for (const anggotaDto of createPortofolioDto.anggota) {
         const user = await this.userRepository.findOne({
@@ -55,14 +94,13 @@ export class PortofolioService {
           role: anggotaDto.role,
           angkatan: anggotaDto.angkatan,
           portofolio: savedPortofolio,
-          user: user, // Gunakan objek user yang ditemukan
+          user: user,
         });
 
         await this.anggotaRepository.save(anggota);
       }
     }
 
-    // Handle detail project (tetap sama seperti sebelumnya)
     if (
       createPortofolioDto.detail_project &&
       createPortofolioDto.detail_project.length > 0
@@ -76,7 +114,6 @@ export class PortofolioService {
       await this.detailProjectRepository.save(detailProjects);
     }
 
-    // Handle tags (tetap sama seperti sebelumnya)
     if (createPortofolioDto.tags && createPortofolioDto.tags.length > 0) {
       const tags = createPortofolioDto.tags.map((tag) =>
         this.tagRepository.create({
@@ -91,39 +128,109 @@ export class PortofolioService {
   }
 
   async findAll() {
-    return await this.portofolioRepository.find({
-      relations: ['anggota', 'detail_project', 'tags'],
+    const portofolios = await this.portofolioRepository.find({
+      relations: ['anggota', 'anggota.user', 'detail_project', 'tags', 'user'],
       order: {
         created_at: 'DESC',
       },
     });
+
+    return Promise.all(
+      portofolios.map(async (portofolio) => {
+        const creatorName = await this.getUserName(
+          portofolio.user.id,
+          portofolio.user.role,
+        );
+
+        const anggotaWithNames = await Promise.all(
+          portofolio.anggota.map(async (anggota) => {
+            const userName = await this.getUserName(
+              anggota.user.id,
+              anggota.user.role,
+            );
+            return {
+              id: anggota.id,
+              role: anggota.role,
+              angkatan: anggota.angkatan,
+              id_user: anggota.user.id,
+              name: userName,
+            };
+          }),
+        );
+
+        return {
+          ...portofolio,
+          anggota: anggotaWithNames,
+          creator: {
+            user_id: portofolio.user.id,
+            nim: portofolio.user.nim,
+            name: creatorName,
+            role: portofolio.user.role,
+          },
+        };
+      }),
+    );
   }
 
   async findOne(id: string) {
     const portofolio = await this.portofolioRepository.findOne({
       where: { id },
-      relations: ['anggota', 'detail_project', 'tags'],
+      relations: ['anggota', 'anggota.user', 'detail_project', 'tags', 'user'],
     });
 
     if (!portofolio) {
-      return null; // Biarkan controller yang handle NotFoundException
+      return null;
     }
 
-    return portofolio;
+    const creatorName = await this.getUserName(
+      portofolio.user.id,
+      portofolio.user.role,
+    );
+
+    const anggotaWithNames = await Promise.all(
+      portofolio.anggota.map(async (anggota) => {
+        const userName = await this.getUserName(
+          anggota.user.id,
+          anggota.user.role,
+        );
+        return {
+          id: anggota.id,
+          role: anggota.role,
+          angkatan: anggota.angkatan,
+          id_user: anggota.user.id,
+          name: userName,
+        };
+      }),
+    );
+
+    return {
+      ...portofolio,
+      anggota: anggotaWithNames,
+      creator: {
+        user_id: portofolio.user.id,
+        nim: portofolio.user.nim,
+        name: creatorName,
+        role: portofolio.user.role,
+      },
+    };
   }
 
-  async update(id: string, updatePortofolioDto: UpdatePortofolioDto) {
-    // Temukan portofolio yang akan diupdate
+  async findOneEntity(id: string): Promise<Portofolio> {
     const portofolio = await this.portofolioRepository.findOne({
       where: { id },
-      relations: ['anggota', 'detail_project', 'tags'],
+      relations: ['anggota', 'detail_project', 'tags', 'user'],
     });
 
     if (!portofolio) {
       throw new NotFoundException(`Portofolio with ID ${id} not found`);
     }
 
-    // Update field utama
+    return portofolio;
+  }
+
+  async update(id: string, updatePortofolioDto: UpdatePortofolioDto) {
+    const portofolio = await this.findOneEntity(id);
+
     if (updatePortofolioDto.nama_projek !== undefined) {
       portofolio.nama_projek = updatePortofolioDto.nama_projek;
     }
@@ -143,16 +250,14 @@ export class PortofolioService {
       portofolio.deskripsi = updatePortofolioDto.deskripsi;
     }
 
-    // Simpan perubahan portofolio utama
     await this.portofolioRepository.save(portofolio);
 
-    // Handle update anggota
     if (updatePortofolioDto.anggota !== undefined) {
-      // Hapus semua anggota yang ada
       await this.anggotaRepository.delete({ portofolio: { id } });
-
-      // Tambahkan anggota baru
-      if (updatePortofolioDto.anggota.length > 0) {
+      if (
+        updatePortofolioDto.anggota &&
+        updatePortofolioDto.anggota.length > 0
+      ) {
         for (const anggotaDto of updatePortofolioDto.anggota) {
           const user = await this.userRepository.findOne({
             where: { id: anggotaDto.id_user },
@@ -176,13 +281,12 @@ export class PortofolioService {
       }
     }
 
-    // Handle update detail project
     if (updatePortofolioDto.detail_project !== undefined) {
-      // Hapus semua detail project yang ada
       await this.detailProjectRepository.delete({ portofolio: { id } });
-
-      // Tambahkan detail project baru
-      if (updatePortofolioDto.detail_project.length > 0) {
+      if (
+        updatePortofolioDto.detail_project &&
+        updatePortofolioDto.detail_project.length > 0
+      ) {
         const detailProjects = updatePortofolioDto.detail_project.map(
           (detail) =>
             this.detailProjectRepository.create({
@@ -194,13 +298,9 @@ export class PortofolioService {
       }
     }
 
-    // Handle update tags
     if (updatePortofolioDto.tags !== undefined) {
-      // Hapus semua tags yang ada
       await this.tagRepository.delete({ portofolio: { id } });
-
-      // Tambahkan tags baru
-      if (updatePortofolioDto.tags.length > 0) {
+      if (updatePortofolioDto.tags && updatePortofolioDto.tags.length > 0) {
         const tags = updatePortofolioDto.tags.map((tag) =>
           this.tagRepository.create({
             ...tag,
@@ -211,15 +311,11 @@ export class PortofolioService {
       }
     }
 
-    // Kembalikan data terbaru
     return this.findOne(id);
   }
 
   async remove(id: string) {
-    const portofolio = await this.findOne(id);
-    if (!portofolio) {
-      throw new NotFoundException('Portofolio not found');
-    }
+    const portofolio = await this.findOneEntity(id);
     await this.portofolioRepository.remove(portofolio);
     return { message: 'Portofolio deleted successfully' };
   }
