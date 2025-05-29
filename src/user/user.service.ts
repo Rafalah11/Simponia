@@ -58,22 +58,22 @@ export class UserService {
   }
 
   private async getUserName(
-    userId: string,
+    id: string,
     role: UserRole,
   ): Promise<string | null> {
     if (role === UserRole.MAHASISWA) {
       const profile = await this.profileUserRepository.findOne({
-        where: { user: { id: userId } },
+        where: { user: { id: id } },
       });
       return profile?.nama || null;
     } else if (role === UserRole.ADMIN) {
       const profile = await this.profileAdminRepository.findOne({
-        where: { user: { id: userId } },
+        where: { user: { id: id } },
       });
       return profile?.nama || null;
     } else if (role === UserRole.ADMIN_COMMUNITY) {
       const profile = await this.profileAdminCommunityRepository.findOne({
-        where: { user: { id: userId } },
+        where: { user: { id: id } },
       });
       return profile?.nama || null;
     }

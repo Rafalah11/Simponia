@@ -47,7 +47,7 @@ export class UserController {
   async findAll(@Req() req) {
     try {
       if (req.user.role !== UserRole.ADMIN) {
-        const user = await this.userService.findOne(req.user.userId);
+        const user = await this.userService.findOne(req.user.id);
         if (!user) {
           throw new NotFoundException('User tidak ditemukan');
         }
@@ -69,7 +69,7 @@ export class UserController {
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req) {
     try {
-      if (req.user.role !== UserRole.ADMIN && req.user.userId !== id) {
+      if (req.user.role !== UserRole.ADMIN && req.user.id !== id) {
         throw new ForbiddenException({
           statusCode: 403,
           message: 'Anda hanya memiliki akses ke data Anda sendiri',
@@ -101,7 +101,7 @@ export class UserController {
     @Req() req,
   ) {
     try {
-      if (req.user.role !== UserRole.ADMIN && req.user.userId !== id) {
+      if (req.user.role !== UserRole.ADMIN && req.user.id !== id) {
         throw new ForbiddenException({
           statusCode: 403,
           message: 'Anda hanya dapat mengupdate data Anda sendiri',
