@@ -32,6 +32,9 @@ export class AnggotaAcara {
   @Column({ length: 100 })
   jabatan: string;
 
+  @Column({ default: 'ABSENT' })
+  status: string;
+
   @CreateDateColumn()
   created_at: Date;
 

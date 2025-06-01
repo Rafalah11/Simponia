@@ -116,6 +116,7 @@ export class AcaraService {
             nama,
             nim: anggotaUser.nim,
             jabatan: anggotaDto.jabatan,
+            status: 'ABSENT',
           });
           console.log(`Anggota record[${index}]:`, anggotaRecord);
           return anggotaRecord;
@@ -150,6 +151,7 @@ export class AcaraService {
           nama: anggota.nama,
           nim: anggota.nim,
           jabatan: anggota.jabatan,
+          status: anggota.status,
         }));
 
         return {
@@ -207,6 +209,7 @@ export class AcaraService {
           nama: anggota.nama,
           nim: anggota.nim,
           jabatan: anggota.jabatan,
+          status: anggota.status,
         };
       });
 

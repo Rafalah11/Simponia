@@ -12,11 +12,6 @@ export class AnggotaAcara1748698144005 implements MigrationInterface {
         jabatan VARCHAR(100) NOT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         status ENUM('ABSENT', 'PERMISSION', 'PRESENT') DEFAULT 'PRESENT',
-        kerja_sama FLOAT NULL,
-        komunikasi FLOAT NULL,
-        disiplin FLOAT NULL,
-        tanggung_jawab FLOAT NULL,
-        penilaian VARCHAR(255) NULL
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         CONSTRAINT FK_anggota_acara_acara FOREIGN KEY (id_acara) 
