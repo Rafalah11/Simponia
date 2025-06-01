@@ -15,7 +15,11 @@ import {
   UseFilters,
   Req,
   ForbiddenException,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AcaraService } from './acara.service';
 import { CreateAcaraDto } from './dto/create-acara.dto';
 import { UpdateAcaraDto } from './dto/update-acara.dto';
@@ -23,7 +27,8 @@ import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthRequest } from 'src/auth/interfaces/auth-request.interface';
 import { UserRole } from 'src/user/entities/user.entity';
-import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
+import { multerConfig } from '../config/multer.config';
+import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @Catch(UnauthorizedException)
 export class UnauthorizedExceptionFilter implements ExceptionFilter {
@@ -45,7 +50,14 @@ export class AcaraController {
   constructor(private readonly acaraService: AcaraService) {}
 
   @Post()
-  create(@Body() createAcaraDto: CreateAcaraDto, @Req() req: AuthRequest) {
+  @UseInterceptors(FileInterceptor('gambar', multerConfig('acara')))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: CreateAcaraDto })
+  async create(
+    @Body() createAcaraDto: CreateAcaraDto,
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: AuthRequest,
+  ) {
     if (
       req.user.role !== UserRole.ADMIN &&
       req.user.role !== UserRole.ADMIN_COMMUNITY
@@ -53,11 +65,38 @@ export class AcaraController {
       throw new ForbiddenException('Anda tidak memiliki akses fitur ini');
     }
 
-    // Tambahkan user_id dari token ke DTO
+    // Parse anggota if provided as a JSON string
+    if (createAcaraDto.anggota && typeof createAcaraDto.anggota === 'string') {
+      try {
+        createAcaraDto.anggota = JSON.parse(createAcaraDto.anggota);
+      } catch (error) {
+        throw new BadRequestException(
+          'Invalid anggota format. Must be a valid JSON array.',
+        );
+      }
+    }
+
+    // Validate anggota array
+    if (createAcaraDto.anggota) {
+      createAcaraDto.anggota.forEach((anggota, index) => {
+        if (!anggota.id_user || !anggota.jabatan) {
+          throw new BadRequestException(
+            `Anggota at index ${index} is missing id_user or jabatan.`,
+          );
+        }
+      });
+    }
+
+    // Log file upload
+    console.log('Uploaded file:', file);
+
+    // Add user_id from token and filename if file is uploaded
     const newAcaraDto = {
       ...createAcaraDto,
-      id_user: req.user.id, // Sesuaikan dengan field yang dibutuhkan
+      id_user: req.user.id,
+      gambar: file ? file.filename : undefined,
     };
+
     return this.acaraService.create(newAcaraDto);
   }
 
@@ -84,9 +123,13 @@ export class AcaraController {
   }
 
   @Put(':id')
-  update(
+  @UseInterceptors(FileInterceptor('gambar', multerConfig('acara')))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: UpdateAcaraDto })
+  async update(
     @Param('id') id: string,
     @Body() updateAcaraDto: UpdateAcaraDto,
+    @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthRequest,
   ) {
     if (
@@ -95,15 +138,33 @@ export class AcaraController {
     ) {
       throw new ForbiddenException('Anda tidak memiliki akses fitur ini');
     }
-    const updateeAcaraDto = {
+
+    // Parse anggota if provided as a JSON string
+    if (updateAcaraDto.anggota && typeof updateAcaraDto.anggota === 'string') {
+      try {
+        updateAcaraDto.anggota = JSON.parse(updateAcaraDto.anggota);
+      } catch (error) {
+        throw new BadRequestException(
+          'Invalid anggota format. Must be a valid JSON array.',
+        );
+      }
+    }
+
+    // Log file upload
+    console.log('Uploaded file for update:', file);
+
+    // Add user_id from token and filename if file is uploaded
+    const updatedAcaraDto = {
       ...updateAcaraDto,
-      id_user: req.user.id, // Sesuaikan dengan field yang dibutuhkan
+      id_user: req.user.id,
+      gambar: file ? file.filename : updateAcaraDto.gambar,
     };
-    return this.acaraService.update(id, updateeAcaraDto);
+
+    return this.acaraService.update(id, updatedAcaraDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string, @Req() req: AuthRequest) {
+  async remove(@Param('id') id: string, @Req() req: AuthRequest) {
     if (
       req.user.role !== UserRole.ADMIN &&
       req.user.role !== UserRole.ADMIN_COMMUNITY

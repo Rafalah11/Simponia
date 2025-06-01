@@ -56,10 +56,6 @@ export class Portofolio {
   })
   updated_at: Date;
 
-  @ManyToOne(() => User, (user) => user.portofolios)
-  @JoinColumn({ name: 'id' }) // Tentukan nama kolom foreign key sebagai 'user_id'
-  user: User;
-
   @OneToMany(() => PortofolioAnggota, (anggota) => anggota.portofolio, {
     cascade: true,
   })

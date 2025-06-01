@@ -10,6 +10,7 @@ export class Acara1745801293977 implements MigrationInterface {
                     ketua_pelaksana VARCHAR(36) NOT NULL,     -- FK ke users (id_users)
                     tanggal DATETIME NOT NULL,
                     jumlah_panitia INT NOT NULL,
+                    skor INT NOT NULL,
                     status ENUM('active', 'ongoing', 'finished') NOT NULL DEFAULT 'ongoing',
                     gambar VARCHAR(255) NULL,
                     deskripsi TEXT NULL,

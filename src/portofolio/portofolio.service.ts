@@ -56,14 +56,12 @@ export class PortofolioService {
     return null;
   }
 
-  async create(createPortofolioDto: CreatePortofolioDto) {
+  async create(createPortofolioDto: CreatePortofolioDto, userId: string) {
     const user = await this.userRepository.findOne({
-      where: { id: createPortofolioDto.user_id },
+      where: { id: userId },
     });
     if (!user) {
-      throw new NotFoundException(
-        `User dengan ID ${createPortofolioDto.user_id} tidak ditemukan`,
-      );
+      throw new NotFoundException(`User dengan ID ${userId} tidak ditemukan`);
     }
 
     const portofolio = this.portofolioRepository.create({
@@ -73,30 +71,44 @@ export class PortofolioService {
       status: createPortofolioDto.status || 'Belum di Verifikasi',
       gambar: createPortofolioDto.gambar,
       deskripsi: createPortofolioDto.deskripsi,
-      user: user,
     });
 
     const savedPortofolio = await this.portofolioRepository.save(portofolio);
 
+    // Hapus data relasi lama sebelum menambahkan yang baru
+    await this.anggotaRepository.delete({
+      portofolio: { id: savedPortofolio.id },
+    });
+    await this.detailProjectRepository.delete({
+      portofolio: { id: savedPortofolio.id },
+    });
+    await this.tagRepository.delete({ portofolio: { id: savedPortofolio.id } });
+
+    // Proses anggota, detail_project, dan tags
     if (createPortofolioDto.anggota && createPortofolioDto.anggota.length > 0) {
-      for (const anggotaDto of createPortofolioDto.anggota) {
+      const uniqueAnggota = Array.from(
+        new Map(
+          createPortofolioDto.anggota.map((item) => [
+            `${item.id_user}:${item.role}`,
+            item,
+          ]),
+        ).values(),
+      );
+      for (const anggotaDto of uniqueAnggota) {
         const user = await this.userRepository.findOne({
           where: { id: anggotaDto.id_user },
         });
-
         if (!user) {
           throw new NotFoundException(
             `User dengan ID ${anggotaDto.id_user} tidak ditemukan`,
           );
         }
-
         const anggota = this.anggotaRepository.create({
           role: anggotaDto.role,
           angkatan: anggotaDto.angkatan,
           portofolio: savedPortofolio,
           user: user,
         });
-
         await this.anggotaRepository.save(anggota);
       }
     }
@@ -129,7 +141,7 @@ export class PortofolioService {
 
   async findAll() {
     const portofolios = await this.portofolioRepository.find({
-      relations: ['anggota', 'anggota.user', 'detail_project', 'tags', 'user'],
+      relations: ['anggota', 'anggota.user', 'detail_project', 'tags'],
       order: {
         created_at: 'DESC',
       },
@@ -137,10 +149,20 @@ export class PortofolioService {
 
     return Promise.all(
       portofolios.map(async (portofolio) => {
-        const creatorName = await this.getUserName(
-          portofolio.user.id,
-          portofolio.user.role,
-        );
+        // Ambil anggota pertama sebagai pembuat (atau sesuaikan logika berdasarkan kebutuhan)
+        const creatorAnggota = portofolio.anggota[0];
+        let creatorName: string | null = null;
+        let creatorNim: string | null = null;
+        let creatorRole: UserRole | null = null;
+
+        if (creatorAnggota) {
+          creatorName = await this.getUserName(
+            creatorAnggota.user.id,
+            creatorAnggota.user.role,
+          );
+          creatorNim = creatorAnggota.user.nim;
+          creatorRole = creatorAnggota.user.role;
+        }
 
         const anggotaWithNames = await Promise.all(
           portofolio.anggota.map(async (anggota) => {
@@ -151,6 +173,7 @@ export class PortofolioService {
             return {
               id: anggota.id,
               role: anggota.role,
+              nim: anggota.user.nim,
               angkatan: anggota.angkatan,
               id_user: anggota.user.id,
               name: userName,
@@ -160,12 +183,15 @@ export class PortofolioService {
 
         return {
           ...portofolio,
+          gambar: portofolio.gambar
+            ? `/uploads/portofolio/${portofolio.gambar}`
+            : null,
           anggota: anggotaWithNames,
           creator: {
-            user_id: portofolio.user.id,
-            nim: portofolio.user.nim,
+            user_id: creatorAnggota ? creatorAnggota.user.id : null,
+            nim: creatorNim,
             name: creatorName,
-            role: portofolio.user.role,
+            role: creatorRole,
           },
         };
       }),
@@ -175,17 +201,27 @@ export class PortofolioService {
   async findOne(id: string) {
     const portofolio = await this.portofolioRepository.findOne({
       where: { id },
-      relations: ['anggota', 'anggota.user', 'detail_project', 'tags', 'user'],
+      relations: ['anggota', 'anggota.user', 'detail_project', 'tags'],
     });
 
     if (!portofolio) {
       return null;
     }
 
-    const creatorName = await this.getUserName(
-      portofolio.user.id,
-      portofolio.user.role,
-    );
+    // Ambil anggota pertama sebagai pembuat (atau sesuaikan logika)
+    const creatorAnggota = portofolio.anggota[0];
+    let creatorName: string | null = null;
+    let creatorNim: string | null = null;
+    let creatorRole: UserRole | null = null;
+
+    if (creatorAnggota) {
+      creatorName = await this.getUserName(
+        creatorAnggota.user.id,
+        creatorAnggota.user.role,
+      );
+      creatorNim = creatorAnggota.user.nim;
+      creatorRole = creatorAnggota.user.role;
+    }
 
     const anggotaWithNames = await Promise.all(
       portofolio.anggota.map(async (anggota) => {
@@ -196,6 +232,7 @@ export class PortofolioService {
         return {
           id: anggota.id,
           role: anggota.role,
+          nim: anggota.user.nim,
           angkatan: anggota.angkatan,
           id_user: anggota.user.id,
           name: userName,
@@ -205,12 +242,15 @@ export class PortofolioService {
 
     return {
       ...portofolio,
+      gambar: portofolio.gambar
+        ? `/uploads/portofolio/${portofolio.gambar}`
+        : null,
       anggota: anggotaWithNames,
       creator: {
-        user_id: portofolio.user.id,
-        nim: portofolio.user.nim,
+        user_id: creatorAnggota ? creatorAnggota.user.id : null,
+        nim: creatorNim,
         name: creatorName,
-        role: portofolio.user.role,
+        role: creatorRole,
       },
     };
   }
@@ -218,7 +258,7 @@ export class PortofolioService {
   async findOneEntity(id: string): Promise<Portofolio> {
     const portofolio = await this.portofolioRepository.findOne({
       where: { id },
-      relations: ['anggota', 'detail_project', 'tags', 'user'],
+      relations: ['anggota', 'detail_project', 'tags'],
     });
 
     if (!portofolio) {

@@ -67,8 +67,16 @@ export class ProfileAdminCommunityService {
     }
   }
 
-  findAll() {
-    return this.profileAdminCommunityRepository.find({ relations: ['user'] });
+  async findAll() {
+    const profiles = await this.profileAdminCommunityRepository.find({
+      relations: ['user'],
+    });
+    return profiles.map((profile) => ({
+      ...profile,
+      profilePicture: profile.profilePicture
+        ? `/uploads/admin-community/${profile.profilePicture}`
+        : null,
+    }));
   }
 
   async findOne(id: string) {
@@ -80,6 +88,9 @@ export class ProfileAdminCommunityService {
       throw new NotFoundException(
         `Profile admin community dengan ID ${id} tidak ditemukan`,
       );
+    }
+    if (profile.profilePicture) {
+      profile.profilePicture = `/uploads/admin-community/${profile.profilePicture}`;
     }
     return profile;
   }
@@ -162,9 +173,13 @@ export class ProfileAdminCommunityService {
     }
   }
   async findByUserId(userId: string): Promise<ProfileAdminCommunity | null> {
-    return this.profileAdminCommunityRepository.findOne({
+    const profile = await this.profileAdminCommunityRepository.findOne({
       where: { user: { id: userId } },
       relations: ['user'],
     });
+    if (profile && profile.profilePicture) {
+      profile.profilePicture = `/uploads/admin-community/${profile.profilePicture}`;
+    }
+    return profile;
   }
 }

@@ -41,7 +41,7 @@ export class ProfileAdminCommunityController {
   ) {
     if (req.user.role !== UserRole.ADMIN_COMMUNITY) {
       throw new ForbiddenException(
-        'Anda tidak memiliki akses untuk membuat data sendiri',
+        'Anda tidak memiliki akses untuk membuat data pada Fitur ini',
       );
     }
 

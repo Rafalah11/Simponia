@@ -61,27 +61,11 @@ export class PortofolioController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthRequest,
   ) {
-    // Parse anggota, detail_project, dan tags dari string JSON jika ada
-    if (createPortofolioDto.anggota) {
-      createPortofolioDto.anggota = JSON.parse(
-        createPortofolioDto.anggota as any,
-      );
-    }
-    if (createPortofolioDto.detail_project) {
-      createPortofolioDto.detail_project = JSON.parse(
-        createPortofolioDto.detail_project as any,
-      );
-    }
-    if (createPortofolioDto.tags) {
-      createPortofolioDto.tags = JSON.parse(createPortofolioDto.tags as any);
-    }
-
     const newPortofolioDto: CreatePortofolioDto = {
       ...createPortofolioDto,
-      user_id: req.user.id,
       gambar: file ? file.filename : undefined, // Simpan nama file jika ada
     };
-    return this.portofolioService.create(newPortofolioDto);
+    return this.portofolioService.create(newPortofolioDto, req.user.id);
   }
 
   @Get()
@@ -125,28 +109,13 @@ export class PortofolioController {
   @Put(':id')
   @UseInterceptors(FileInterceptor('gambar', multerConfig('portofolio')))
   @ApiConsumes('multipart/form-data')
-  @ApiBody({ type: CreatePortofolioDto })
+  @ApiBody({ type: UpdatePortofolioDto })
   async update(
     @Param('id') id: string,
     @Body() updatePortofolioDto: UpdatePortofolioDto,
     @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthRequest,
   ) {
-    // Parse anggota, detail_project, dan tags dari string JSON jika ada
-    if (updatePortofolioDto.anggota) {
-      updatePortofolioDto.anggota = JSON.parse(
-        updatePortofolioDto.anggota as any,
-      );
-    }
-    if (updatePortofolioDto.detail_project) {
-      updatePortofolioDto.detail_project = JSON.parse(
-        updatePortofolioDto.detail_project as any,
-      );
-    }
-    if (updatePortofolioDto.tags) {
-      updatePortofolioDto.tags = JSON.parse(updatePortofolioDto.tags as any);
-    }
-
     const updatedDto: UpdatePortofolioDto = {
       ...updatePortofolioDto,
       gambar: file ? file.filename : updatePortofolioDto.gambar, // Gunakan file baru jika ada

@@ -1,9 +1,11 @@
+import { AnggotaAcara } from 'src/anggota-acara/entities/anggota-acara.entity';
 import { User } from '../../user/entities/user.entity';
 import {
   Column,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -29,6 +31,9 @@ export class Acara {
   @Column()
   jumlah_panitia: number;
 
+  @Column()
+  skor: number;
+
   @Column({
     type: 'enum',
     enum: ['active', 'ongoing', 'finished'],
@@ -51,4 +56,7 @@ export class Acara {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updated_at: Date;
+
+  @OneToMany(() => AnggotaAcara, (anggota) => anggota.acara, { cascade: true })
+  anggota: AnggotaAcara[];
 }

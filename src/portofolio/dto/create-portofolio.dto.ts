@@ -40,7 +40,7 @@ class CreateTagDto {
 }
 
 export class CreatePortofolioDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   nama_projek: string;
 
@@ -88,8 +88,4 @@ export class CreatePortofolioDto {
   @ValidateNested({ each: true })
   @Type(() => CreateTagDto)
   tags?: CreateTagDto[];
-
-  @IsOptional() // Tambahkan user_id sebagai properti opsional
-  @IsString()
-  user_id?: string;
 }

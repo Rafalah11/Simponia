@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
   ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import { StatusVerifikasiService } from './status_verifikasi.service';
 import { CreateStatusVerifikasiDto } from './dto/create-status_verifikasi.dto';
@@ -47,10 +48,20 @@ export class StatusVerifikasiController {
     return this.statusVerifikasiService.findAll();
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.statusVerifikasiService.findOne(+id);
-  // }
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    const uniqueId = parseInt(id, 10); // Konversi string ke number
+    if (isNaN(uniqueId)) {
+      throw new NotFoundException('ID harus berupa angka');
+    }
+    const result = await this.statusVerifikasiService.findOne(uniqueId);
+    if (!result) {
+      throw new NotFoundException(
+        `Status verifikasi dengan ID ${uniqueId} tidak ditemukan`,
+      );
+    }
+    return result;
+  }
 
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateStatusVerifikasiDto: UpdateStatusVerifikasiDto) {

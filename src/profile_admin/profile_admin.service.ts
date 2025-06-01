@@ -67,8 +67,16 @@ export class ProfileAdminService {
     }
   }
 
-  findAll() {
-    return this.profileAdminRepository.find({ relations: ['user'] });
+  async findAll() {
+    const profiles = await this.profileAdminRepository.find({
+      relations: ['user'],
+    });
+    return profiles.map((profile) => ({
+      ...profile,
+      profilePicture: profile.profilePicture
+        ? `/uploads/admin/${profile.profilePicture}`
+        : null,
+    }));
   }
 
   async findOne(id: string) {
@@ -80,6 +88,9 @@ export class ProfileAdminService {
       throw new NotFoundException(
         `Profile admin dengan ID ${id} tidak ditemukan`,
       );
+    }
+    if (profile.profilePicture) {
+      profile.profilePicture = `/uploads/admin/${profile.profilePicture}`;
     }
     return profile;
   }
@@ -161,9 +172,13 @@ export class ProfileAdminService {
   }
 
   async findByUserId(userId: string): Promise<ProfileAdmin | null> {
-    return this.profileAdminRepository.findOne({
+    const profile = await this.profileAdminRepository.findOne({
       where: { user: { id: userId } },
       relations: ['user'],
     });
+    if (profile && profile.profilePicture) {
+      profile.profilePicture = `/uploads/admin/${profile.profilePicture}`;
+    }
+    return profile;
   }
 }

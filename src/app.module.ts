@@ -12,6 +12,9 @@ import { LoginModule } from './login/login.module';
 import { AuthModule } from './auth/auth.module';
 import { AcaraModule } from './acara/acara.module';
 import { DatabaseModule } from './database/database.module';
+import { AnggotaAcaraModule } from './anggota-acara/anggota-acara.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -23,9 +26,69 @@ import { DatabaseModule } from './database/database.module';
       password: '',
       database: 'simponia',
       entities: ['dist/**/*.entity.js'],
-      synchronize: false, // Set to false when using migrations
+      synchronize: false,
       migrations: ['dist/migrations/*.js'],
-      migrationsRun: false, // We'll run migrations manually
+      migrationsRun: false,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'Uploads', 'user'),
+      serveRoot: '/uploads/user',
+      serveStaticOptions: {
+        index: false,
+        fallthrough: true,
+        cacheControl: true,
+        dotfiles: 'deny',
+        etag: true,
+        lastModified: true,
+      },
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'Uploads', 'acara'),
+      serveRoot: '/uploads/acara',
+      serveStaticOptions: {
+        index: false,
+        fallthrough: true,
+        cacheControl: true,
+        dotfiles: 'deny',
+        etag: true,
+        lastModified: true,
+      },
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'Uploads', 'admin'),
+      serveRoot: '/uploads/admin',
+      serveStaticOptions: {
+        index: false,
+        fallthrough: true,
+        cacheControl: true,
+        dotfiles: 'deny',
+        etag: true,
+        lastModified: true,
+      },
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'Uploads', 'admin-community'),
+      serveRoot: '/uploads/admin-community',
+      serveStaticOptions: {
+        index: false,
+        fallthrough: true,
+        cacheControl: true,
+        dotfiles: 'deny',
+        etag: true,
+        lastModified: true,
+      },
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'Uploads', 'portofolio'),
+      serveRoot: '/uploads/portofolio',
+      serveStaticOptions: {
+        index: false,
+        fallthrough: true,
+        cacheControl: true,
+        dotfiles: 'deny',
+        etag: true,
+        lastModified: true,
+      },
     }),
     UserModule,
     ProfileUserModule,
@@ -37,6 +100,7 @@ import { DatabaseModule } from './database/database.module';
     AuthModule,
     AcaraModule,
     DatabaseModule,
+    AnggotaAcaraModule,
   ],
   controllers: [AppController],
   providers: [AppService],

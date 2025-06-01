@@ -70,7 +70,11 @@ export class ProfileUserService {
       relations: ['user'],
     });
     if (!profile) {
-      throw new NotFoundException(`Profile with ID ${id} not found`);
+      throw new NotFoundException(`Profile dengan ID ${id} tidak ditemukan`);
+    }
+    // Tambahkan URL dasar ke profilePicture
+    if (profile.profilePicture) {
+      profile.profilePicture = `/uploads/user/${profile.profilePicture}`;
     }
     return profile;
   }
@@ -141,11 +145,16 @@ export class ProfileUserService {
     }
   }
   async findByUserId(userId: string): Promise<ProfileUser | null> {
-    return this.profileUserRepository.findOne({
+    const profile = await this.profileUserRepository.findOne({
       where: { user: { id: userId } },
       relations: ['user'],
     });
+    if (profile && profile.profilePicture) {
+      profile.profilePicture = `/uploads/user/${profile.profilePicture}`;
+    }
+    return profile;
   }
+
   findAll() {
     return this.profileUserRepository.find({ relations: ['user'] });
   }
