@@ -72,7 +72,6 @@ export class ProfileUserService {
     if (!profile) {
       throw new NotFoundException(`Profile dengan ID ${id} tidak ditemukan`);
     }
-    // Tambahkan URL dasar ke profilePicture
     if (profile.profilePicture) {
       profile.profilePicture = `/uploads/user/${profile.profilePicture}`;
     }
@@ -89,7 +88,6 @@ export class ProfileUserService {
       throw new NotFoundException(`Profile dengan ID ${id} tidak ditemukan`);
     }
 
-    // Validasi role user yang terkait
     this.checkRoleIsMahasiswa(profile.user.role);
 
     if (updateProfileUserDto.user_id) {
@@ -109,13 +107,22 @@ export class ProfileUserService {
       profile.user = user;
     }
 
+    // Tangani profilePicture secara eksplisit
+    const updatedProfileData = {
+      ...updateProfileUserDto,
+      profilePicture: updateProfileUserDto.profilePicture
+        ? updateProfileUserDto.profilePicture
+        : profile.profilePicture, // Pertahankan gambar lama jika tidak ada file baru
+    };
+
     try {
       await this.profileUserRepository.save({
         ...profile,
-        ...updateProfileUserDto,
+        ...updatedProfileData,
       });
       return this.findOne(id);
     } catch (error) {
+      console.error('Error updating profile:', error); // Tambahkan logging untuk debugging
       throw new BadRequestException('Gagal mengupdate profile');
     }
   }
@@ -130,7 +137,6 @@ export class ProfileUserService {
       throw new NotFoundException(`Profile dengan ID ${id} tidak ditemukan`);
     }
 
-    // Validasi role sebelum menghapus
     this.checkRoleIsMahasiswa(profile.user.role);
 
     try {
@@ -144,6 +150,7 @@ export class ProfileUserService {
       throw new BadRequestException('Gagal menghapus profile');
     }
   }
+
   async findByUserId(userId: string): Promise<ProfileUser | null> {
     const profile = await this.profileUserRepository.findOne({
       where: { user: { id: userId } },

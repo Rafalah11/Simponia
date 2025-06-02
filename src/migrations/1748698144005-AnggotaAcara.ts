@@ -18,6 +18,7 @@ export class AnggotaAcara1748698144005 implements MigrationInterface {
         tanggung_jawab INT NULL,          -- Nilai Tanggung Jawab (0-100)
         nilai_rata_rata FLOAT NULL,       -- Nilai rata-rata dari 4 aspek
         grade VARCHAR(2) NULL,             -- Grade (A, B+, B, dll.)
+        catatan TEXT NULL,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         CONSTRAINT FK_anggota_acara_acara FOREIGN KEY (id_acara) 

@@ -46,4 +46,5 @@ export class User {
   updated_at: Date;
   acara: any;
   portofolios: any;
+  email: string | undefined;
 }

@@ -57,4 +57,8 @@ export class CreateAnggotaAcaraDto {
   @IsString()
   @IsOptional()
   grade?: string;
+
+  @IsString()
+  @IsOptional()
+  catatan?: string;
 }

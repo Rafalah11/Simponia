@@ -56,6 +56,10 @@ export class AnggotaAcaraResponseDto {
 
   @IsString()
   @IsOptional()
+  id_user?: string;
+
+  @IsString()
+  @IsOptional()
   nama?: string;
 
   @IsString()
@@ -73,9 +77,14 @@ export class AnggotaAcaraResponseDto {
   komunikasi?: number;
   tanggung_jawab?: number;
   nilai_rata_rata?: number;
+
   @IsString()
   @IsOptional()
   grade?: string;
+
+  @IsString()
+  @IsOptional()
+  catatan?: string;
 
   @IsDate()
   created_at: Date;

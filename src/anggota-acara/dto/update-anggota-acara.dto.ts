@@ -47,4 +47,8 @@ export class UpdateAnggotaAcaraDto {
   @Max(100)
   @IsOptional()
   tanggung_jawab?: number;
+
+  @IsString()
+  @IsOptional()
+  catatan?: string;
 }

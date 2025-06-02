@@ -28,7 +28,7 @@ export class ProfileUserController {
   constructor(private readonly profileUserService: ProfileUserService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('profilePicture', multerConfig('user'))) // Gunakan folder 'user'
+  @UseInterceptors(FileInterceptor('profilePicture', multerConfig('user')))
   async create(
     @Body() FormData: CreateProfileUserDto,
     @UploadedFile() file: Express.Multer.File,
@@ -49,7 +49,7 @@ export class ProfileUserController {
   }
 
   @Post(':id')
-  @UseInterceptors(FileInterceptor('profilePicture', multerConfig('user'))) // Gunakan folder 'user'
+  @UseInterceptors(FileInterceptor('profilePicture', multerConfig('user')))
   async createWithId(
     @Body() createProfileUserDto: CreateProfileUserDto,
     @UploadedFile() file: Express.Multer.File,
@@ -97,7 +97,7 @@ export class ProfileUserController {
   }
 
   @Put(':id')
-  @UseInterceptors(FileInterceptor('profilePicture', multerConfig('user'))) // Gunakan folder 'user'
+  @UseInterceptors(FileInterceptor('profilePicture', multerConfig('user')))
   async update(
     @Param('id') id: string,
     @Body() updateProfileUserDto: UpdateProfileUserDto,
@@ -119,10 +119,10 @@ export class ProfileUserController {
       throw new ForbiddenException('Anda hanya bisa mengupdate data sendiri');
     }
 
-    const updatedDto = {
+    const updatedDto: UpdateProfileUserDto = {
       ...updateProfileUserDto,
       user_id: existingProfile.user.id,
-      profilePicture: file,
+      profilePicture: file ? file.filename : undefined, // Gunakan filename dari file
     };
 
     return this.profileUserService.update(id, updatedDto);

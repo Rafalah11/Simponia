@@ -33,25 +33,59 @@ export class PortofolioService {
     private readonly profileAdminCommunityRepository: Repository<ProfileAdminCommunity>,
   ) {}
 
-  private async getUserName(
+  private async getUserProfile(
     userId: string,
     role: UserRole,
-  ): Promise<string | null> {
+  ): Promise<{
+    nama: string | null;
+    noHandphone: string | null;
+    linkedin: string | null;
+    instagram: string | null;
+    email: string | null;
+    github: string | null;
+  } | null> {
     if (role === UserRole.MAHASISWA) {
       const profile = await this.profileUserRepository.findOne({
         where: { user: { id: userId } },
       });
-      return profile?.nama || null;
+      return profile
+        ? {
+            nama: profile.nama || null,
+            noHandphone: profile.noHandphone || null,
+            linkedin: profile.linkedin || null,
+            instagram: profile.instagram || null,
+            email: profile.email || null,
+            github: profile.github || null,
+          }
+        : null;
     } else if (role === UserRole.ADMIN) {
       const profile = await this.profileAdminRepository.findOne({
         where: { user: { id: userId } },
       });
-      return profile?.nama || null;
+      return profile
+        ? {
+            nama: profile.nama || null,
+            noHandphone: profile.noHandphone || null,
+            linkedin: profile.linkedin || null,
+            instagram: profile.instagram || null,
+            email: profile.email || null,
+            github: profile.github || null,
+          }
+        : null;
     } else if (role === UserRole.ADMIN_COMMUNITY) {
       const profile = await this.profileAdminCommunityRepository.findOne({
         where: { user: { id: userId } },
       });
-      return profile?.nama || null;
+      return profile
+        ? {
+            nama: profile.nama || null,
+            noHandphone: profile.noHandphone || null,
+            linkedin: profile.linkedin || null,
+            instagram: profile.instagram || null,
+            email: profile.email || null,
+            github: profile.github || null,
+          }
+        : null;
     }
     return null;
   }
@@ -151,12 +185,19 @@ export class PortofolioService {
       portofolios.map(async (portofolio) => {
         // Ambil anggota pertama sebagai pembuat (atau sesuaikan logika berdasarkan kebutuhan)
         const creatorAnggota = portofolio.anggota[0];
-        let creatorName: string | null = null;
+        let creatorProfile: {
+          nama: string | null;
+          noHandphone: string | null;
+          linkedin: string | null;
+          instagram: string | null;
+          email: string | null;
+          github: string | null;
+        } | null = null;
         let creatorNim: string | null = null;
         let creatorRole: UserRole | null = null;
 
         if (creatorAnggota) {
-          creatorName = await this.getUserName(
+          creatorProfile = await this.getUserProfile(
             creatorAnggota.user.id,
             creatorAnggota.user.role,
           );
@@ -166,7 +207,7 @@ export class PortofolioService {
 
         const anggotaWithNames = await Promise.all(
           portofolio.anggota.map(async (anggota) => {
-            const userName = await this.getUserName(
+            const userProfile = await this.getUserProfile(
               anggota.user.id,
               anggota.user.role,
             );
@@ -176,7 +217,7 @@ export class PortofolioService {
               nim: anggota.user.nim,
               angkatan: anggota.angkatan,
               id_user: anggota.user.id,
-              name: userName,
+              name: userProfile?.nama || null,
             };
           }),
         );
@@ -187,12 +228,19 @@ export class PortofolioService {
             ? `/uploads/portofolio/${portofolio.gambar}`
             : null,
           anggota: anggotaWithNames,
-          creator: {
-            user_id: creatorAnggota ? creatorAnggota.user.id : null,
-            nim: creatorNim,
-            name: creatorName,
-            role: creatorRole,
-          },
+          creator: creatorAnggota
+            ? {
+                user_id: creatorAnggota.user.id,
+                nim: creatorNim,
+                name: creatorProfile?.nama || null,
+                role: creatorRole,
+                noHandphone: creatorProfile?.noHandphone || null,
+                linkedin: creatorProfile?.linkedin || null,
+                instagram: creatorProfile?.instagram || null,
+                email: creatorProfile?.email || null,
+                github: creatorProfile?.github || null,
+              }
+            : null,
         };
       }),
     );
@@ -210,12 +258,19 @@ export class PortofolioService {
 
     // Ambil anggota pertama sebagai pembuat (atau sesuaikan logika)
     const creatorAnggota = portofolio.anggota[0];
-    let creatorName: string | null = null;
+    let creatorProfile: {
+      nama: string | null;
+      noHandphone: string | null;
+      linkedin: string | null;
+      instagram: string | null;
+      email: string | null;
+      github: string | null;
+    } | null = null;
     let creatorNim: string | null = null;
     let creatorRole: UserRole | null = null;
 
     if (creatorAnggota) {
-      creatorName = await this.getUserName(
+      creatorProfile = await this.getUserProfile(
         creatorAnggota.user.id,
         creatorAnggota.user.role,
       );
@@ -225,7 +280,7 @@ export class PortofolioService {
 
     const anggotaWithNames = await Promise.all(
       portofolio.anggota.map(async (anggota) => {
-        const userName = await this.getUserName(
+        const userProfile = await this.getUserProfile(
           anggota.user.id,
           anggota.user.role,
         );
@@ -235,7 +290,7 @@ export class PortofolioService {
           nim: anggota.user.nim,
           angkatan: anggota.angkatan,
           id_user: anggota.user.id,
-          name: userName,
+          name: userProfile?.nama || null,
         };
       }),
     );
@@ -246,12 +301,19 @@ export class PortofolioService {
         ? `/uploads/portofolio/${portofolio.gambar}`
         : null,
       anggota: anggotaWithNames,
-      creator: {
-        user_id: creatorAnggota ? creatorAnggota.user.id : null,
-        nim: creatorNim,
-        name: creatorName,
-        role: creatorRole,
-      },
+      creator: creatorAnggota
+        ? {
+            user_id: creatorAnggota.user.id,
+            nim: creatorNim,
+            name: creatorProfile?.nama || null,
+            role: creatorRole,
+            noHandphone: creatorProfile?.noHandphone || null,
+            linkedin: creatorProfile?.linkedin || null,
+            instagram: creatorProfile?.instagram || null,
+            email: creatorProfile?.email || null,
+            github: creatorProfile?.github || null,
+          }
+        : null,
     };
   }
 

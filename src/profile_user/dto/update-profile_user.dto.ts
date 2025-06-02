@@ -10,4 +10,5 @@ export class UpdateProfileUserDto {
   readonly instagram?: string;
   readonly email?: string;
   readonly github?: string;
+  readonly profilePicture?: string;
 }

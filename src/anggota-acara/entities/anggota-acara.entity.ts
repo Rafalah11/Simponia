@@ -53,6 +53,9 @@ export class AnggotaAcara {
   @Column({ default: 'ABSENT' })
   status: string;
 
+  @Column({ type: 'text', nullable: true })
+  catatan: string;
+
   @CreateDateColumn()
   created_at: Date;
 

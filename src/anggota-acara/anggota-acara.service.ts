@@ -70,7 +70,6 @@ export class AnggotaAcaraService {
       );
     }
 
-    // Periksa apakah pengguna sudah terdaftar sebagai anggota acara ini
     const existingAnggota = await this.anggotaAcaraRepository.findOne({
       where: {
         user: { id: createAnggotaAcaraDto.id_user },
@@ -83,7 +82,6 @@ export class AnggotaAcaraService {
       );
     }
 
-    // Hitung nilai rata-rata dan grade jika nilai aspek diberikan
     let nilai_rata_rata: number | undefined;
     let grade: string | undefined;
     if (
@@ -107,6 +105,7 @@ export class AnggotaAcaraService {
       user,
       nilai_rata_rata,
       grade,
+      catatan: createAnggotaAcaraDto.catatan,
     });
 
     const savedAnggotaAcara =
@@ -141,11 +140,11 @@ export class AnggotaAcaraService {
       tanggung_jawab: savedAnggotaAcara.tanggung_jawab,
       nilai_rata_rata: savedAnggotaAcara.nilai_rata_rata,
       grade: savedAnggotaAcara.grade,
+      catatan: savedAnggotaAcara.catatan,
       created_at: savedAnggotaAcara.created_at,
       updated_at: savedAnggotaAcara.updated_at,
     };
   }
-
   async findAll(req: AuthRequest): Promise<AnggotaAcaraResponseDto[]> {
     if (
       req.user.role !== UserRole.ADMIN &&
@@ -177,6 +176,7 @@ export class AnggotaAcaraService {
         nim: anggotaAcara.user.nim,
         role: anggotaAcara.user.role,
       },
+      id_user: anggotaAcara.user?.id,
       nama: anggotaAcara.nama,
       nim: anggotaAcara.nim,
       jabatan: anggotaAcara.jabatan,
@@ -187,6 +187,7 @@ export class AnggotaAcaraService {
       tanggung_jawab: anggotaAcara.tanggung_jawab,
       nilai_rata_rata: anggotaAcara.nilai_rata_rata,
       grade: anggotaAcara.grade,
+      catatan: anggotaAcara.catatan,
       created_at: anggotaAcara.created_at,
       updated_at: anggotaAcara.updated_at,
     }));
@@ -233,6 +234,7 @@ export class AnggotaAcaraService {
         nim: anggotaAcara.user.nim,
         role: anggotaAcara.user.role,
       },
+      id_user: anggotaAcara.user?.id,
       nama: anggotaAcara.nama,
       nim: anggotaAcara.nim,
       jabatan: anggotaAcara.jabatan,
@@ -243,6 +245,7 @@ export class AnggotaAcaraService {
       tanggung_jawab: anggotaAcara.tanggung_jawab,
       nilai_rata_rata: anggotaAcara.nilai_rata_rata,
       grade: anggotaAcara.grade,
+      catatan: anggotaAcara.catatan,
       created_at: anggotaAcara.created_at,
       updated_at: anggotaAcara.updated_at,
     };
@@ -295,10 +298,26 @@ export class AnggotaAcaraService {
           `Pengguna dengan ID ${updateAnggotaAcaraDto.id_user} tidak ditemukan`,
         );
       }
+
+      // Validasi apakah id_user sudah terdaftar sebagai anggota acara
+      const isUserRegisteredInAcara = await this.anggotaAcaraRepository.findOne(
+        {
+          where: {
+            user: { id: updateAnggotaAcaraDto.id_user },
+            acara: { id: updatedAcara.id },
+          },
+        },
+      );
+
+      if (!isUserRegisteredInAcara) {
+        throw new BadRequestException(
+          `Pengguna dengan ID ${updateAnggotaAcaraDto.id_user} tidak terdaftar sebagai anggota acara dengan ID ${updatedAcara.id}`,
+        );
+      }
+
       updatedUser = user;
     }
 
-    // Hitung nilai rata-rata dan grade jika ada nilai aspek yang diperbarui
     let nilai_rata_rata = anggotaAcara.nilai_rata_rata;
     let grade = anggotaAcara.grade;
     if (
@@ -334,6 +353,7 @@ export class AnggotaAcaraService {
       user: updatedUser,
       nilai_rata_rata,
       grade,
+      catatan: updateAnggotaAcaraDto.catatan,
     });
 
     const savedAnggotaAcara =
@@ -358,6 +378,7 @@ export class AnggotaAcaraService {
         nim: updatedUser.nim,
         role: updatedUser.role,
       },
+      id_user: savedAnggotaAcara.user?.id,
       nama: savedAnggotaAcara.nama,
       nim: savedAnggotaAcara.nim,
       jabatan: savedAnggotaAcara.jabatan,
@@ -368,6 +389,7 @@ export class AnggotaAcaraService {
       tanggung_jawab: savedAnggotaAcara.tanggung_jawab,
       nilai_rata_rata: savedAnggotaAcara.nilai_rata_rata,
       grade: savedAnggotaAcara.grade,
+      catatan: savedAnggotaAcara.catatan,
       created_at: savedAnggotaAcara.created_at,
       updated_at: savedAnggotaAcara.updated_at,
     };
