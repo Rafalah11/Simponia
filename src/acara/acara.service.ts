@@ -30,6 +30,16 @@ export class AcaraService {
     private profileAdminCommunityRepository: Repository<ProfileAdminCommunity>,
   ) {}
 
+  private calculateGrade(average: number): string {
+    if (average > 80) return 'A';
+    if (average >= 75) return 'B+';
+    if (average >= 70) return 'B';
+    if (average >= 60) return 'C+';
+    if (average >= 55) return 'C';
+    if (average >= 40) return 'D';
+    return 'E';
+  }
+
   private async getUserName(
     userId: string,
     role: UserRole,
@@ -110,6 +120,25 @@ export class AcaraService {
               `NIM untuk pengguna ID ${anggotaDto.id_user} tidak ditemukan`,
             );
           }
+
+          // Hitung nilai rata-rata dan grade jika nilai aspek diberikan
+          let nilai_rata_rata: number | undefined;
+          let grade: string | undefined;
+          if (
+            anggotaDto.kerjasama !== undefined &&
+            anggotaDto.kedisiplinan !== undefined &&
+            anggotaDto.komunikasi !== undefined &&
+            anggotaDto.tanggung_jawab !== undefined
+          ) {
+            nilai_rata_rata =
+              (anggotaDto.kerjasama +
+                anggotaDto.kedisiplinan +
+                anggotaDto.komunikasi +
+                anggotaDto.tanggung_jawab) /
+              4;
+            grade = this.calculateGrade(nilai_rata_rata);
+          }
+
           const anggotaRecord = this.anggotaAcaraRepository.create({
             acara: savedAcara,
             user: anggotaUser,
@@ -117,6 +146,12 @@ export class AcaraService {
             nim: anggotaUser.nim,
             jabatan: anggotaDto.jabatan,
             status: 'ABSENT',
+            kerjasama: anggotaDto.kerjasama,
+            kedisiplinan: anggotaDto.kedisiplinan,
+            komunikasi: anggotaDto.komunikasi,
+            tanggung_jawab: anggotaDto.tanggung_jawab,
+            nilai_rata_rata,
+            grade,
           });
           console.log(`Anggota record[${index}]:`, anggotaRecord);
           return anggotaRecord;
@@ -152,6 +187,12 @@ export class AcaraService {
           nim: anggota.nim,
           jabatan: anggota.jabatan,
           status: anggota.status,
+          kerjasama: anggota.kerjasama,
+          kedisiplinan: anggota.kedisiplinan,
+          komunikasi: anggota.komunikasi,
+          tanggung_jawab: anggota.tanggung_jawab,
+          nilai_rata_rata: anggota.nilai_rata_rata,
+          grade: anggota.grade,
         }));
 
         return {
@@ -210,6 +251,12 @@ export class AcaraService {
           nim: anggota.nim,
           jabatan: anggota.jabatan,
           status: anggota.status,
+          kerjasama: anggota.kerjasama,
+          kedisiplinan: anggota.kedisiplinan,
+          komunikasi: anggota.komunikasi,
+          tanggung_jawab: anggota.tanggung_jawab,
+          nilai_rata_rata: anggota.nilai_rata_rata,
+          grade: anggota.grade,
         };
       });
 

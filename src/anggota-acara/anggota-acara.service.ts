@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -26,6 +27,19 @@ export class AnggotaAcaraService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
+
+  private calculateGrade(average: number): string {
+    let grade: string;
+    if (average > 80) grade = 'A';
+    else if (average >= 75) grade = 'B+';
+    else if (average >= 70) grade = 'B';
+    else if (average >= 60) grade = 'C+';
+    else if (average >= 55) grade = 'C';
+    else if (average >= 40) grade = 'D';
+    else grade = 'E';
+
+    return `${grade} (${average.toFixed(2)})`;
+  }
 
   async create(
     createAnggotaAcaraDto: CreateAnggotaAcaraDto,
@@ -56,10 +70,43 @@ export class AnggotaAcaraService {
       );
     }
 
+    // Periksa apakah pengguna sudah terdaftar sebagai anggota acara ini
+    const existingAnggota = await this.anggotaAcaraRepository.findOne({
+      where: {
+        user: { id: createAnggotaAcaraDto.id_user },
+        acara: { id: createAnggotaAcaraDto.id_acara },
+      },
+    });
+    if (existingAnggota) {
+      throw new BadRequestException(
+        `Pengguna dengan ID ${createAnggotaAcaraDto.id_user} sudah terdaftar sebagai anggota acara ini / Sudah memiliki Nilai`,
+      );
+    }
+
+    // Hitung nilai rata-rata dan grade jika nilai aspek diberikan
+    let nilai_rata_rata: number | undefined;
+    let grade: string | undefined;
+    if (
+      createAnggotaAcaraDto.kerjasama !== undefined &&
+      createAnggotaAcaraDto.kedisiplinan !== undefined &&
+      createAnggotaAcaraDto.komunikasi !== undefined &&
+      createAnggotaAcaraDto.tanggung_jawab !== undefined
+    ) {
+      nilai_rata_rata =
+        (createAnggotaAcaraDto.kerjasama +
+          createAnggotaAcaraDto.kedisiplinan +
+          createAnggotaAcaraDto.komunikasi +
+          createAnggotaAcaraDto.tanggung_jawab) /
+        4;
+      grade = this.calculateGrade(nilai_rata_rata);
+    }
+
     const anggotaAcara = this.anggotaAcaraRepository.create({
       ...createAnggotaAcaraDto,
       acara,
       user,
+      nilai_rata_rata,
+      grade,
     });
 
     const savedAnggotaAcara =
@@ -69,15 +116,15 @@ export class AnggotaAcaraService {
       id: savedAnggotaAcara.id,
       acara: {
         id: acara.id,
-        judul: acara.judul,
-        tanggal: acara.tanggal,
-        jumlah_panitia: acara.jumlah_panitia,
-        skor: acara.skor,
-        status: acara.status,
-        gambar: acara.gambar,
-        deskripsi: acara.deskripsi,
-        created_at: acara.created_at,
-        updated_at: acara.updated_at,
+        // judul: acara.judul,
+        // tanggal: acara.tanggal,
+        // jumlah_panitia: acara.jumlah_panitia,
+        // skor: acara.skor,
+        // status: acara.status,
+        // gambar: acara.gambar,
+        // deskripsi: acara.deskripsi,
+        // created_at: acara.created_at,
+        // updated_at: acara.updated_at,
       },
       created_by: {
         id: user.id,
@@ -87,6 +134,13 @@ export class AnggotaAcaraService {
       nama: savedAnggotaAcara.nama,
       nim: savedAnggotaAcara.nim,
       jabatan: savedAnggotaAcara.jabatan,
+      status: savedAnggotaAcara.status,
+      kerjasama: savedAnggotaAcara.kerjasama,
+      kedisiplinan: savedAnggotaAcara.kedisiplinan,
+      komunikasi: savedAnggotaAcara.komunikasi,
+      tanggung_jawab: savedAnggotaAcara.tanggung_jawab,
+      nilai_rata_rata: savedAnggotaAcara.nilai_rata_rata,
+      grade: savedAnggotaAcara.grade,
       created_at: savedAnggotaAcara.created_at,
       updated_at: savedAnggotaAcara.updated_at,
     };
@@ -108,15 +162,15 @@ export class AnggotaAcaraService {
       id: anggotaAcara.id,
       acara: {
         id: anggotaAcara.acara.id,
-        judul: anggotaAcara.acara.judul,
-        tanggal: anggotaAcara.acara.tanggal,
-        jumlah_panitia: anggotaAcara.acara.jumlah_panitia,
-        skor: anggotaAcara.acara.skor,
-        status: anggotaAcara.acara.status,
-        gambar: anggotaAcara.acara.gambar,
-        deskripsi: anggotaAcara.acara.deskripsi,
-        created_at: anggotaAcara.acara.created_at,
-        updated_at: anggotaAcara.acara.updated_at,
+        // judul: anggotaAcara.acara.judul,
+        // tanggal: anggotaAcara.acara.tanggal,
+        // jumlah_panitia: anggotaAcara.acara.jumlah_panitia,
+        // skor: anggotaAcara.acara.skor,
+        // status: anggotaAcara.acara.status,
+        // gambar: anggotaAcara.acara.gambar,
+        // deskripsi: anggotaAcara.acara.deskripsi,
+        // created_at: anggotaAcara.acara.created_at,
+        // updated_at: anggotaAcara.acara.updated_at,
       },
       created_by: {
         id: anggotaAcara.user.id,
@@ -126,6 +180,13 @@ export class AnggotaAcaraService {
       nama: anggotaAcara.nama,
       nim: anggotaAcara.nim,
       jabatan: anggotaAcara.jabatan,
+      status: anggotaAcara.status,
+      kerjasama: anggotaAcara.kerjasama,
+      kedisiplinan: anggotaAcara.kedisiplinan,
+      komunikasi: anggotaAcara.komunikasi,
+      tanggung_jawab: anggotaAcara.tanggung_jawab,
+      nilai_rata_rata: anggotaAcara.nilai_rata_rata,
+      grade: anggotaAcara.grade,
       created_at: anggotaAcara.created_at,
       updated_at: anggotaAcara.updated_at,
     }));
@@ -157,15 +218,15 @@ export class AnggotaAcaraService {
       id: anggotaAcara.id,
       acara: {
         id: anggotaAcara.acara.id,
-        judul: anggotaAcara.acara.judul,
-        tanggal: anggotaAcara.acara.tanggal,
-        jumlah_panitia: anggotaAcara.acara.jumlah_panitia,
-        skor: anggotaAcara.acara.skor,
-        status: anggotaAcara.acara.status,
-        gambar: anggotaAcara.acara.gambar,
-        deskripsi: anggotaAcara.acara.deskripsi,
-        created_at: anggotaAcara.acara.created_at,
-        updated_at: anggotaAcara.acara.updated_at,
+        // judul: anggotaAcara.acara.judul,
+        // tanggal: anggotaAcara.acara.tanggal,
+        // jumlah_panitia: anggotaAcara.acara.jumlah_panitia,
+        // skor: anggotaAcara.acara.skor,
+        // status: anggotaAcara.acara.status,
+        // gambar: anggotaAcara.acara.gambar,
+        // deskripsi: anggotaAcara.acara.deskripsi,
+        // created_at: anggotaAcara.acara.created_at,
+        // updated_at: anggotaAcara.acara.updated_at,
       },
       created_by: {
         id: anggotaAcara.user.id,
@@ -175,6 +236,13 @@ export class AnggotaAcaraService {
       nama: anggotaAcara.nama,
       nim: anggotaAcara.nim,
       jabatan: anggotaAcara.jabatan,
+      status: anggotaAcara.status,
+      kerjasama: anggotaAcara.kerjasama,
+      kedisiplinan: anggotaAcara.kedisiplinan,
+      komunikasi: anggotaAcara.komunikasi,
+      tanggung_jawab: anggotaAcara.tanggung_jawab,
+      nilai_rata_rata: anggotaAcara.nilai_rata_rata,
+      grade: anggotaAcara.grade,
       created_at: anggotaAcara.created_at,
       updated_at: anggotaAcara.updated_at,
     };
@@ -230,10 +298,42 @@ export class AnggotaAcaraService {
       updatedUser = user;
     }
 
+    // Hitung nilai rata-rata dan grade jika ada nilai aspek yang diperbarui
+    let nilai_rata_rata = anggotaAcara.nilai_rata_rata;
+    let grade = anggotaAcara.grade;
+    if (
+      updateAnggotaAcaraDto.kerjasama !== undefined ||
+      updateAnggotaAcaraDto.kedisiplinan !== undefined ||
+      updateAnggotaAcaraDto.komunikasi !== undefined ||
+      updateAnggotaAcaraDto.tanggung_jawab !== undefined
+    ) {
+      const kerjasama =
+        updateAnggotaAcaraDto.kerjasama ?? anggotaAcara.kerjasama;
+      const kedisiplinan =
+        updateAnggotaAcaraDto.kedisiplinan ?? anggotaAcara.kedisiplinan;
+      const komunikasi =
+        updateAnggotaAcaraDto.komunikasi ?? anggotaAcara.komunikasi;
+      const tanggung_jawab =
+        updateAnggotaAcaraDto.tanggung_jawab ?? anggotaAcara.tanggung_jawab;
+
+      if (
+        kerjasama !== undefined &&
+        kedisiplinan !== undefined &&
+        komunikasi !== undefined &&
+        tanggung_jawab !== undefined
+      ) {
+        nilai_rata_rata =
+          (kerjasama + kedisiplinan + komunikasi + tanggung_jawab) / 4;
+        grade = this.calculateGrade(nilai_rata_rata);
+      }
+    }
+
     this.anggotaAcaraRepository.merge(anggotaAcara, {
       ...updateAnggotaAcaraDto,
       acara: updatedAcara,
       user: updatedUser,
+      nilai_rata_rata,
+      grade,
     });
 
     const savedAnggotaAcara =
@@ -243,15 +343,15 @@ export class AnggotaAcaraService {
       id: savedAnggotaAcara.id,
       acara: {
         id: updatedAcara.id,
-        judul: updatedAcara.judul,
-        tanggal: updatedAcara.tanggal,
-        jumlah_panitia: updatedAcara.jumlah_panitia,
-        skor: updatedAcara.skor,
-        status: updatedAcara.status,
-        gambar: updatedAcara.gambar,
-        deskripsi: updatedAcara.deskripsi,
-        created_at: updatedAcara.created_at,
-        updated_at: updatedAcara.updated_at,
+        // judul: acara.judul,
+        // tanggal: acara.tanggal,
+        // jumlah_panitia: acara.jumlah_panitia,
+        // skor: acara.skor,
+        // status: acara.status,
+        // gambar: acara.gambar,
+        // deskripsi: acara.deskripsi,
+        // created_at: acara.created_at,
+        // updated_at: acara.updated_at,
       },
       created_by: {
         id: updatedUser.id,
@@ -261,6 +361,13 @@ export class AnggotaAcaraService {
       nama: savedAnggotaAcara.nama,
       nim: savedAnggotaAcara.nim,
       jabatan: savedAnggotaAcara.jabatan,
+      status: savedAnggotaAcara.status,
+      kerjasama: savedAnggotaAcara.kerjasama,
+      kedisiplinan: savedAnggotaAcara.kedisiplinan,
+      komunikasi: savedAnggotaAcara.komunikasi,
+      tanggung_jawab: savedAnggotaAcara.tanggung_jawab,
+      nilai_rata_rata: savedAnggotaAcara.nilai_rata_rata,
+      grade: savedAnggotaAcara.grade,
       created_at: savedAnggotaAcara.created_at,
       updated_at: savedAnggotaAcara.updated_at,
     };

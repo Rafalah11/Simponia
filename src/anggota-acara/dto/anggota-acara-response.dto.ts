@@ -5,34 +5,34 @@ class AcaraResponse {
   @IsString()
   id: string;
 
-  @IsString()
-  judul: string;
+  // @IsString()
+  // judul: string;
 
-  @IsDate()
-  tanggal: Date;
+  // @IsDate()
+  // tanggal: Date;
 
-  @IsInt()
-  jumlah_panitia: number;
+  // @IsInt()
+  // jumlah_panitia: number;
 
-  @IsInt()
-  skor: number;
+  // @IsInt()
+  // skor: number;
 
-  @IsString()
-  status: string;
+  // @IsString()
+  // status: string;
 
-  @IsString()
-  @IsOptional()
-  gambar?: string;
+  // @IsString()
+  // @IsOptional()
+  // gambar?: string;
 
-  @IsString()
-  @IsOptional()
-  deskripsi?: string;
+  // @IsString()
+  // @IsOptional()
+  // deskripsi?: string;
 
-  @IsDate()
-  created_at: Date;
+  // @IsDate()
+  // created_at: Date;
 
-  @IsDate()
-  updated_at: Date;
+  // @IsDate()
+  // updated_at: Date;
 }
 
 class CreatedByResponse {
@@ -64,6 +64,18 @@ export class AnggotaAcaraResponseDto {
 
   @IsString()
   jabatan: string;
+
+  @IsString()
+  status: string;
+
+  kerjasama?: number;
+  kedisiplinan?: number;
+  komunikasi?: number;
+  tanggung_jawab?: number;
+  nilai_rata_rata?: number;
+  @IsString()
+  @IsOptional()
+  grade?: string;
 
   @IsDate()
   created_at: Date;

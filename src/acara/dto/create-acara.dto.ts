@@ -7,6 +7,8 @@ import {
   IsUUID,
   IsArray,
   ValidateNested,
+  Min,
+  Max,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -18,6 +20,30 @@ class AnggotaDto {
   @IsString()
   @IsNotEmpty()
   jabatan: string;
+
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  @IsOptional()
+  kerjasama?: number;
+
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  @IsOptional()
+  kedisiplinan?: number;
+
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  @IsOptional()
+  komunikasi?: number;
+
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  @IsOptional()
+  tanggung_jawab?: number;
 }
 
 export class CreateAcaraDto {

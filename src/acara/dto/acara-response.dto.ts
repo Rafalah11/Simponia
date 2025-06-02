@@ -38,6 +38,32 @@ class AnggotaResponseDto {
 
   @IsString()
   jabatan: string;
+
+  @IsString()
+  status: string;
+
+  @IsInt()
+  @IsOptional()
+  kerjasama?: number;
+
+  @IsInt()
+  @IsOptional()
+  kedisiplinan?: number;
+
+  @IsInt()
+  @IsOptional()
+  komunikasi?: number;
+
+  @IsInt()
+  @IsOptional()
+  tanggung_jawab?: number;
+
+  @IsOptional()
+  nilai_rata_rata?: number;
+
+  @IsString()
+  @IsOptional()
+  grade?: string;
 }
 
 export class AcaraResponseDto {

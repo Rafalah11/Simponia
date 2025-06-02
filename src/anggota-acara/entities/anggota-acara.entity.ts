@@ -32,6 +32,24 @@ export class AnggotaAcara {
   @Column({ length: 100 })
   jabatan: string;
 
+  @Column({ type: 'int', nullable: true })
+  kerjasama: number;
+
+  @Column({ type: 'int', nullable: true })
+  kedisiplinan: number;
+
+  @Column({ type: 'int', nullable: true })
+  komunikasi: number;
+
+  @Column({ type: 'int', nullable: true })
+  tanggung_jawab: number;
+
+  @Column({ type: 'float', nullable: true })
+  nilai_rata_rata: number;
+
+  @Column({ nullable: true })
+  grade: string;
+
   @Column({ default: 'ABSENT' })
   status: string;
 

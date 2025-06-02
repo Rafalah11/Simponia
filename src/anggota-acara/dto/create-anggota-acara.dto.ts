@@ -1,4 +1,12 @@
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Max,
+  Min,
+} from 'class-validator';
 
 export class CreateAnggotaAcaraDto {
   @IsUUID()
@@ -21,4 +29,32 @@ export class CreateAnggotaAcaraDto {
   @IsNotEmpty()
   jabatan: string;
   static anggota: any;
+
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  @IsOptional()
+  kerjasama?: number;
+
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  @IsOptional()
+  kedisiplinan?: number;
+
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  @IsOptional()
+  komunikasi?: number;
+
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  @IsOptional()
+  tanggung_jawab?: number;
+
+  @IsString()
+  @IsOptional()
+  grade?: string;
 }
