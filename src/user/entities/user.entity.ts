@@ -5,6 +5,7 @@ export enum UserRole {
   OTHER = '4',
 }
 
+import { Portofolio } from 'src/portofolio/entities/portofolio.entity';
 import { ProfileUser } from '../../profile_user/entities/profile_user.entity';
 import {
   Column,
@@ -13,6 +14,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToOne,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('users')
@@ -39,12 +41,15 @@ export class User {
   @OneToOne(() => ProfileUser, (profile) => profile.user)
   profile: ProfileUser;
 
+  @OneToMany(() => Portofolio, (portofolio) => portofolio.creator)
+  portofolios: Portofolio[];
+
   @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()
   updated_at: Date;
   acara: any;
-  portofolios: any;
+  // portofolios: any;
   email: string | undefined;
 }

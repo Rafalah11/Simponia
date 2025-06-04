@@ -46,6 +46,9 @@ export class Portofolio {
   @Column('text', { nullable: true })
   deskripsi: string;
 
+  @ManyToOne(() => User, (user) => user.portofolios)
+  creator: User;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 

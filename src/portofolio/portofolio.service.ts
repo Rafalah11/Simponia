@@ -105,6 +105,7 @@ export class PortofolioService {
       status: createPortofolioDto.status || 'Belum di Verifikasi',
       gambar: createPortofolioDto.gambar,
       deskripsi: createPortofolioDto.deskripsi,
+      creator: user,
     });
 
     const savedPortofolio = await this.portofolioRepository.save(portofolio);
@@ -175,7 +176,13 @@ export class PortofolioService {
 
   async findAll() {
     const portofolios = await this.portofolioRepository.find({
-      relations: ['anggota', 'anggota.user', 'detail_project', 'tags'],
+      relations: [
+        'anggota',
+        'anggota.user',
+        'detail_project',
+        'tags',
+        'creator',
+      ],
       order: {
         created_at: 'DESC',
       },
@@ -183,8 +190,6 @@ export class PortofolioService {
 
     return Promise.all(
       portofolios.map(async (portofolio) => {
-        // Ambil anggota pertama sebagai pembuat (atau sesuaikan logika berdasarkan kebutuhan)
-        const creatorAnggota = portofolio.anggota[0];
         let creatorProfile: {
           nama: string | null;
           noHandphone: string | null;
@@ -196,13 +201,13 @@ export class PortofolioService {
         let creatorNim: string | null = null;
         let creatorRole: UserRole | null = null;
 
-        if (creatorAnggota) {
+        if (portofolio.creator) {
           creatorProfile = await this.getUserProfile(
-            creatorAnggota.user.id,
-            creatorAnggota.user.role,
+            portofolio.creator.id,
+            portofolio.creator.role,
           );
-          creatorNim = creatorAnggota.user.nim;
-          creatorRole = creatorAnggota.user.role;
+          creatorNim = portofolio.creator.nim;
+          creatorRole = portofolio.creator.role;
         }
 
         const anggotaWithNames = await Promise.all(
@@ -228,9 +233,9 @@ export class PortofolioService {
             ? `/uploads/portofolio/${portofolio.gambar}`
             : null,
           anggota: anggotaWithNames,
-          creator: creatorAnggota
+          creator: portofolio.creator
             ? {
-                user_id: creatorAnggota.user.id,
+                user_id: portofolio.creator.id,
                 nim: creatorNim,
                 name: creatorProfile?.nama || null,
                 role: creatorRole,
@@ -249,15 +254,19 @@ export class PortofolioService {
   async findOne(id: string) {
     const portofolio = await this.portofolioRepository.findOne({
       where: { id },
-      relations: ['anggota', 'anggota.user', 'detail_project', 'tags'],
+      relations: [
+        'anggota',
+        'anggota.user',
+        'detail_project',
+        'tags',
+        'creator',
+      ],
     });
 
     if (!portofolio) {
       return null;
     }
 
-    // Ambil anggota pertama sebagai pembuat (atau sesuaikan logika)
-    const creatorAnggota = portofolio.anggota[0];
     let creatorProfile: {
       nama: string | null;
       noHandphone: string | null;
@@ -269,13 +278,13 @@ export class PortofolioService {
     let creatorNim: string | null = null;
     let creatorRole: UserRole | null = null;
 
-    if (creatorAnggota) {
+    if (portofolio.creator) {
       creatorProfile = await this.getUserProfile(
-        creatorAnggota.user.id,
-        creatorAnggota.user.role,
+        portofolio.creator.id,
+        portofolio.creator.role,
       );
-      creatorNim = creatorAnggota.user.nim;
-      creatorRole = creatorAnggota.user.role;
+      creatorNim = portofolio.creator.nim;
+      creatorRole = portofolio.creator.role;
     }
 
     const anggotaWithNames = await Promise.all(
@@ -301,9 +310,9 @@ export class PortofolioService {
         ? `/uploads/portofolio/${portofolio.gambar}`
         : null,
       anggota: anggotaWithNames,
-      creator: creatorAnggota
+      creator: portofolio.creator
         ? {
-            user_id: creatorAnggota.user.id,
+            user_id: portofolio.creator.id,
             nim: creatorNim,
             name: creatorProfile?.nama || null,
             role: creatorRole,
