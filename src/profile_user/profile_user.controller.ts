@@ -69,11 +69,11 @@ export class ProfileUserController {
 
   @Get()
   async getMyProfile(@Req() req: AuthRequest) {
-    if (req.user.role === UserRole.ADMIN_COMMUNITY) {
-      throw new ForbiddenException(
-        'Hanya Mahasiswa yang dapat menampilkan informasi ini',
-      );
-    }
+    // if (req.user.role === UserRole.ADMIN_COMMUNITY) {
+    //   throw new ForbiddenException(
+    //     'Hanya Mahasiswa yang dapat menampilkan informasi ini',
+    //   );
+    // }
     if (req.user.role === UserRole.ADMIN) {
       return this.profileUserService.findAll();
     }
