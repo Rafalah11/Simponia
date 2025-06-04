@@ -12,7 +12,7 @@ export class CreatePortofolio1744829178026 implements MigrationInterface {
             status ENUM('Belum di Verifikasi', 'Proses Verifikasi', 'Perlu Perubahan', 'Terverifikasi', 'Dihapus'),
             gambar VARCHAR(255) NULL,
             deskripsi TEXT NULL,
-            creator VARCHAR(255),
+            creatorID VARCHAR(255),
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id)
