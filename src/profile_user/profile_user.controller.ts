@@ -34,9 +34,9 @@ export class ProfileUserController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthRequest,
   ) {
-    if (req.user.role !== UserRole.MAHASISWA) {
-      throw new ForbiddenException('Hanya mahasiswa yang bisa membuat profile');
-    }
+    // if (req.user.role !== UserRole.MAHASISWA) {
+    //   throw new ForbiddenException('Hanya mahasiswa yang bisa membuat profile');
+    // }
 
     const createProfileDto: CreateProfileUserDto = {
       ...FormData,

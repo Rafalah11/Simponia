@@ -40,7 +40,7 @@ export class ProfileUserService {
       );
     }
 
-    this.checkRoleIsMahasiswa(user.role);
+    // this.checkRoleIsMahasiswa(user.role);
 
     const existingProfile = await this.profileUserRepository.findOne({
       where: { email: createProfileUserDto.email },
