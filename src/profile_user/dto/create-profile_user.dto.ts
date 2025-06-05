@@ -33,6 +33,18 @@ export class CreateProfileUserDto {
   @ApiProperty({ required: false })
   readonly github?: string;
 
+  @ApiProperty({ required: false })
+  readonly namaKomunitas?: string;
+
+  @ApiProperty({ required: false })
+  readonly joinKomunitas?: string; // String for form-data
+
+  @ApiProperty({ required: false })
+  readonly divisi?: string;
+
+  @ApiProperty({ required: false })
+  readonly posisi?: string;
+
   @ApiProperty({ type: 'string', format: 'binary', required: false })
   profilePicture?: Express.Multer.File;
 }

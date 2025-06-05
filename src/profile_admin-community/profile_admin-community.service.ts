@@ -49,18 +49,42 @@ export class ProfileAdminCommunityService {
       throw new BadRequestException('Email sudah digunakan');
     }
 
+    const existingUserProfile =
+      await this.profileAdminCommunityRepository.findOne({
+        where: { user: { id: createProfileAdminCommunityDto.user_id } },
+      });
+    if (existingUserProfile) {
+      throw new BadRequestException('User sudah memiliki profile');
+    }
+
     const profileData = {
       ...createProfileAdminCommunityDto,
-      user: user,
-      tanggalLahir: new Date(createProfileAdminCommunityDto.tanggalLahir),
+      user,
+      tanggalLahir: createProfileAdminCommunityDto.tanggalLahir
+        ? new Date(createProfileAdminCommunityDto.tanggalLahir)
+        : undefined,
+      joinKomunitas: createProfileAdminCommunityDto.joinKomunitas
+        ? new Date(createProfileAdminCommunityDto.joinKomunitas)
+        : undefined,
       profilePicture: createProfileAdminCommunityDto.profilePicture?.filename,
     };
+
+    if (profileData.tanggalLahir && isNaN(profileData.tanggalLahir.getTime())) {
+      throw new BadRequestException('Format tanggalLahir tidak valid');
+    }
+    if (
+      profileData.joinKomunitas &&
+      isNaN(profileData.joinKomunitas.getTime())
+    ) {
+      throw new BadRequestException('Format joinKomunitas tidak valid');
+    }
 
     const profile = this.profileAdminCommunityRepository.create(profileData);
 
     try {
       return await this.profileAdminCommunityRepository.save(profile);
     } catch (error) {
+      console.error('Create error:', error);
       throw new BadRequestException(
         `Gagal membuat profile admin community: ${error.message}`,
       );
@@ -95,6 +119,17 @@ export class ProfileAdminCommunityService {
     return profile;
   }
 
+  async findByUserId(userId: string): Promise<ProfileAdminCommunity | null> {
+    const profile = await this.profileAdminCommunityRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+    if (profile && profile.profilePicture) {
+      profile.profilePicture = `/uploads/admin-community/${profile.profilePicture}`;
+    }
+    return profile;
+  }
+
   async update(
     id: string,
     updateProfileAdminCommunityDto: UpdateProfileAdminCommunityDto,
@@ -110,39 +145,69 @@ export class ProfileAdminCommunityService {
       );
     }
 
-    this.checkRoleIsAdminCommunity(profile.user.role);
-
-    if (updateProfileAdminCommunityDto.user_id) {
-      const user = await this.userRepository.findOne({
-        where: { id: updateProfileAdminCommunityDto.user_id },
-      });
-      if (!user) {
-        throw new NotFoundException(
-          `User dengan ID ${updateProfileAdminCommunityDto.user_id} tidak ditemukan`,
-        );
+    if (
+      updateProfileAdminCommunityDto.email &&
+      updateProfileAdminCommunityDto.email !== profile.email
+    ) {
+      const existingProfile =
+        await this.profileAdminCommunityRepository.findOne({
+          where: { email: updateProfileAdminCommunityDto.email },
+        });
+      if (existingProfile) {
+        throw new BadRequestException('Email sudah digunakan');
       }
-      if (user.role !== UserRole.ADMIN_COMMUNITY) {
-        throw new ForbiddenException(
-          'Role tidak sesuai untuk mengupdate profile admin community',
-        );
-      }
-      profile.user = user;
     }
 
     const updateData = {
-      ...profile,
       ...updateProfileAdminCommunityDto,
-      ...(updateProfileAdminCommunityDto.tanggalLahir && {
-        tanggalLahir: new Date(updateProfileAdminCommunityDto.tanggalLahir),
-      }),
-      profilePicture: updateProfileAdminCommunityDto.profilePicture?.filename,
+      tanggalLahir: updateProfileAdminCommunityDto.tanggalLahir
+        ? new Date(updateProfileAdminCommunityDto.tanggalLahir)
+        : profile.tanggalLahir,
+      joinKomunitas: updateProfileAdminCommunityDto.joinKomunitas
+        ? new Date(updateProfileAdminCommunityDto.joinKomunitas)
+        : profile.joinKomunitas,
+      profilePicture:
+        updateProfileAdminCommunityDto.profilePicture?.filename ||
+        profile.profilePicture,
     };
 
+    // Hapus properti yang tidak ada di entitas
+    delete updateData.user_id;
+
+    // Validasi tanggalLahir
+    if (updateData.tanggalLahir) {
+      const tanggalLahirDate =
+        updateData.tanggalLahir instanceof Date
+          ? updateData.tanggalLahir
+          : new Date(updateData.tanggalLahir);
+      if (isNaN(tanggalLahirDate.getTime())) {
+        throw new BadRequestException('Format tanggalLahir tidak valid');
+      }
+      updateData.tanggalLahir = tanggalLahirDate;
+    }
+
+    // Validasi joinKomunitas
+    if (updateData.joinKomunitas) {
+      const joinKomunitasDate =
+        updateData.joinKomunitas instanceof Date
+          ? updateData.joinKomunitas
+          : new Date(updateData.joinKomunitas);
+      if (isNaN(joinKomunitasDate.getTime())) {
+        throw new BadRequestException('Format joinKomunitas tidak valid');
+      }
+      updateData.joinKomunitas = joinKomunitasDate;
+    }
+
+    console.log('updateData:', updateData);
+
     try {
-      await this.profileAdminCommunityRepository.save(updateData);
-      return this.findOne(id);
+      await this.profileAdminCommunityRepository.update(id, updateData);
+      return await this.findOne(id);
     } catch (error) {
-      throw new BadRequestException('Gagal mengupdate profile admin community');
+      console.error('Update error:', error);
+      throw new BadRequestException(
+        `Gagal mengupdate profile admin community: ${error.message}`,
+      );
     }
   }
 
@@ -158,9 +223,6 @@ export class ProfileAdminCommunityService {
       );
     }
 
-    // Validasi role sebelum menghapus
-    this.checkRoleIsAdminCommunity(profile.user.role);
-
     try {
       await this.profileAdminCommunityRepository.remove(profile);
       return {
@@ -169,17 +231,10 @@ export class ProfileAdminCommunityService {
         deletedAt: new Date(),
       };
     } catch (error) {
-      throw new BadRequestException('Gagal menghapus profile admin community');
+      console.error('Delete error:', error);
+      throw new BadRequestException(
+        `Gagal menghapus profile admin community: ${error.message}`,
+      );
     }
-  }
-  async findByUserId(userId: string): Promise<ProfileAdminCommunity | null> {
-    const profile = await this.profileAdminCommunityRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['user'],
-    });
-    if (profile && profile.profilePicture) {
-      profile.profilePicture = `/uploads/admin-community/${profile.profilePicture}`;
-    }
-    return profile;
   }
 }

@@ -72,12 +72,9 @@ export class AcaraService {
     const user = await this.userRepository.findOne({
       where: { id: createAcaraDto.id_user },
     });
-    const ketuaPelaksana = await this.userRepository.findOne({
-      where: { id: createAcaraDto.ketua_pelaksana },
-    });
 
-    if (!user || !ketuaPelaksana) {
-      throw new NotFoundException('User atau Ketua Pelaksana tidak ditemukan');
+    if (!user) {
+      throw new NotFoundException('User tidak ditemukan');
     }
 
     createAcaraDto.id_user = user.id;
@@ -87,7 +84,6 @@ export class AcaraService {
     const acara = this.acaraRepository.create({
       ...createAcaraDto,
       user,
-      ketua_pelaksana: ketuaPelaksana,
     });
 
     const savedAcara = await this.acaraRepository.save(acara);
@@ -121,7 +117,6 @@ export class AcaraService {
             );
           }
 
-          // Hitung nilai rata-rata dan grade jika nilai aspek diberikan
           let nilai_rata_rata: number | undefined;
           let grade: string | undefined;
           if (
@@ -166,7 +161,7 @@ export class AcaraService {
 
   async findAll(): Promise<AcaraResponseDto[]> {
     const acaras = await this.acaraRepository.find({
-      relations: ['user', 'ketua_pelaksana', 'anggota', 'anggota.user'],
+      relations: ['user', 'anggota', 'anggota.user'],
     });
 
     return Promise.all(
@@ -174,10 +169,6 @@ export class AcaraService {
         const creatorName = await this.getUserName(
           acara.user.id,
           acara.user.role,
-        );
-        const ketuaPelaksanaName = await this.getUserName(
-          acara.ketua_pelaksana.id,
-          acara.ketua_pelaksana.role,
         );
 
         const anggotaWithNames = acara.anggota.map((anggota) => ({
@@ -212,12 +203,6 @@ export class AcaraService {
             name: creatorName,
             role: acara.user.role,
           },
-          ketua_pelaksana: {
-            id: acara.ketua_pelaksana.id,
-            nim: acara.ketua_pelaksana.nim,
-            name: ketuaPelaksanaName,
-            role: acara.ketua_pelaksana.role,
-          },
           anggota: anggotaWithNames,
         };
       }),
@@ -227,7 +212,7 @@ export class AcaraService {
   async findOne(id: string): Promise<AcaraResponseDto> {
     const acara = await this.acaraRepository.findOne({
       where: { id },
-      relations: ['user', 'ketua_pelaksana', 'anggota', 'anggota.user'],
+      relations: ['user', 'anggota', 'anggota.user'],
     });
 
     if (!acara) {
@@ -235,10 +220,6 @@ export class AcaraService {
     }
 
     const creatorName = await this.getUserName(acara.user.id, acara.user.role);
-    const ketuaPelaksanaName = await this.getUserName(
-      acara.ketua_pelaksana.id,
-      acara.ketua_pelaksana.role,
-    );
 
     const anggotaWithNames = acara.anggota
       .filter((anggota) => anggota.nama && anggota.nim)
@@ -267,7 +248,7 @@ export class AcaraService {
       jumlah_panitia: acara.jumlah_panitia,
       skor: acara.skor,
       status: acara.status,
-      gambar: acara.gambar ? `/Uploads/acara/${acara.gambar}` : undefined,
+      gambar: acara.gambar ? `/uploads/acara/${acara.gambar}` : undefined,
       deskripsi: acara.deskripsi,
       created_at: acara.created_at,
       updated_at: acara.updated_at,
@@ -276,12 +257,6 @@ export class AcaraService {
         nim: acara.user.nim,
         name: creatorName,
         role: acara.user.role,
-      },
-      ketua_pelaksana: {
-        id: acara.ketua_pelaksana.id,
-        nim: acara.ketua_pelaksana.nim,
-        name: ketuaPelaksanaName,
-        role: acara.ketua_pelaksana.role,
       },
       anggota: anggotaWithNames,
     };
@@ -297,10 +272,9 @@ export class AcaraService {
     });
 
     if (!acara) {
-      throw new NotFoundException(`Acara with ID ${id} not found`);
+      throw new NotFoundException(`Acara dengan ID ${id} tidak ditemukan`);
     }
 
-    // Hapus file lama jika gambar baru diunggah
     if (
       updateAcaraDto.gambar &&
       acara.gambar &&
@@ -319,16 +293,6 @@ export class AcaraService {
 
     console.log('Updating acara with gambar:', updateAcaraDto.gambar);
 
-    if (updateAcaraDto.ketua_pelaksana) {
-      const ketuaPelaksana = await this.userRepository.findOne({
-        where: { id: updateAcaraDto.ketua_pelaksana },
-      });
-      if (!ketuaPelaksana) {
-        throw new NotFoundException('Ketua Pelaksana not found');
-      }
-      acara.ketua_pelaksana = ketuaPelaksana;
-    }
-
     if (updateAcaraDto.anggota !== undefined) {
       await this.anggotaAcaraRepository.delete({ acara: { id } });
       if (updateAcaraDto.anggota && updateAcaraDto.anggota.length > 0) {
@@ -339,7 +303,7 @@ export class AcaraService {
             });
             if (!anggotaUser) {
               throw new NotFoundException(
-                `User with ID ${anggotaDto.id_user} not found`,
+                `Pengguna dengan ID ${anggotaDto.id_user} tidak ditemukan`,
               );
             }
             const nama = await this.getUserName(
@@ -348,7 +312,7 @@ export class AcaraService {
             );
             if (!nama) {
               throw new NotFoundException(
-                `Profile for user ID ${anggotaDto.id_user} not found`,
+                `Profil untuk pengguna ID ${anggotaDto.id_user} tidak ditemukan`,
               );
             }
             return this.anggotaAcaraRepository.create({
@@ -364,7 +328,7 @@ export class AcaraService {
       }
     }
 
-    const { ketua_pelaksana, anggota, ...otherFields } = updateAcaraDto;
+    const { anggota, ...otherFields } = updateAcaraDto;
     this.acaraRepository.merge(acara, otherFields);
 
     await this.acaraRepository.save(acara);
@@ -378,7 +342,6 @@ export class AcaraService {
       throw new NotFoundException(`Acara dengan ID ${id} tidak ditemukan`);
     }
 
-    // Hapus file gambar jika ada
     if (acara.gambar) {
       const filePath = join(process.cwd(), 'Uploads', 'acara', acara.gambar);
       if (fs.existsSync(filePath)) {

@@ -24,7 +24,7 @@ import { join } from 'path';
       port: 3306,
       username: 'root',
       password: '',
-      database: 'simponia1',
+      database: 'simponia',
       entities: ['dist/**/*.entity.js'],
       synchronize: false,
       migrations: ['dist/migrations/*.js'],

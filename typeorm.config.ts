@@ -18,7 +18,7 @@ export default new DataSource({
   port: 3306,
   username: 'root',
   password: '',
-  database: 'simponia1',
+  database: 'simponia',
   entities: [
     User,
     ProfileUser,

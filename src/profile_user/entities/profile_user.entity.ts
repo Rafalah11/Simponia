@@ -54,6 +54,18 @@ export class ProfileUser {
   @Column({ name: 'profile_picture', length: 255, nullable: true })
   profilePicture: string;
 
+  @Column({ name: 'nama_komunitas', length: 255, nullable: true })
+  namaKomunitas: string;
+
+  @Column({ name: 'join_komunitas', type: 'date', nullable: true })
+  joinKomunitas: Date;
+
+  @Column({ length: 255, nullable: true })
+  divisi: string;
+
+  @Column({ length: 255, nullable: true })
+  posisi: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

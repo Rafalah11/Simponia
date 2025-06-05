@@ -55,10 +55,6 @@ export class CreateAcaraDto {
   @IsString()
   judul: string;
 
-  @IsUUID()
-  @IsNotEmpty()
-  ketua_pelaksana: string;
-
   @IsDate()
   @Type(() => Date)
   tanggal: Date;

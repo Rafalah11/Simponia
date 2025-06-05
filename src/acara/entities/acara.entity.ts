@@ -15,15 +15,11 @@ export class Acara {
   id: string;
 
   @ManyToOne(() => User, (user) => user.acara)
-  @JoinColumn({ name: 'id_user' }) // Tentukan nama kolom foreign key
+  @JoinColumn({ name: 'id_user' })
   user: User;
 
   @Column()
   judul: string;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'ketua_pelaksana' }) // Tentukan nama kolom foreign key
-  ketua_pelaksana: User;
 
   @Column()
   tanggal: Date;

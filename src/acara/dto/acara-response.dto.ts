@@ -101,7 +101,5 @@ export class AcaraResponseDto {
 
   created_by: UserResponseDto;
 
-  ketua_pelaksana: UserResponseDto;
-
   anggota: AnggotaResponseDto[];
 }

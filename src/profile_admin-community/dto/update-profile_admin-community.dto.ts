@@ -1,4 +1,3 @@
-// src/profile_admin-community/dto/update-profile_admin-community.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateProfileAdminCommunityDto {
@@ -15,7 +14,7 @@ export class UpdateProfileAdminCommunityDto {
   readonly gender?: 'L' | 'P';
 
   @ApiProperty({ required: false })
-  readonly tanggalLahir?: string | Date;
+  readonly tanggalLahir?: string;
 
   @ApiProperty({ required: false })
   readonly kota?: string;
@@ -34,6 +33,18 @@ export class UpdateProfileAdminCommunityDto {
 
   @ApiProperty({ required: false })
   readonly github?: string;
+
+  @ApiProperty({ required: false })
+  readonly namaKomunitas?: string;
+
+  @ApiProperty({ required: false })
+  readonly joinKomunitas?: string;
+
+  @ApiProperty({ required: false })
+  readonly divisi?: string;
+
+  @ApiProperty({ required: false })
+  readonly posisi?: string;
 
   @ApiProperty({ type: 'string', format: 'binary', required: false })
   readonly profilePicture?: Express.Multer.File;

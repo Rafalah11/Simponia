@@ -7,7 +7,6 @@ export class Acara1745801293977 implements MigrationInterface {
                     id VARCHAR(36) NOT NULL DEFAULT (UUID()),  -- PK UniqueID
                     id_user VARCHAR(36) NOT NULL,              -- FK id_user
                     judul VARCHAR(255) NOT NULL,
-                    ketua_pelaksana VARCHAR(36) NOT NULL,     -- FK ke users (id_users)
                     tanggal DATETIME NOT NULL,
                     jumlah_panitia INT NOT NULL,
                     skor INT NOT NULL,

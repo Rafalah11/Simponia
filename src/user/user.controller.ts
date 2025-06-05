@@ -44,17 +44,44 @@ export class UserController {
   }
 
   @Get()
+  async getDatabyUser(@Req() req) {
+    try {
+      const user = await this.userService.findOne(req.user.id);
+      if (!user) {
+        throw new NotFoundException('Super Admin tidak ditemukan');
+      }
+      return user;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException({
+          statusCode: 404,
+          message: error.message,
+          error: 'Not Found',
+        });
+      }
+      throw error;
+    }
+  }
+
+  @Get('users')
   async findAll(@Req() req) {
     try {
       if (req.user.role !== UserRole.ADMIN) {
-        const user = await this.userService.findOne(req.user.id);
-        if (!user) {
-          throw new NotFoundException('User tidak ditemukan');
-        }
-        return user;
+        throw new ForbiddenException({
+          statusCode: 403,
+          message: 'Anda tidak memiliki hak akses ke fitur ini',
+          error: 'Forbidden',
+        });
       }
       return await this.userService.findAll();
     } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw new ForbiddenException({
+          statusCode: 403,
+          message: error.message,
+          error: 'Forbidden',
+        });
+      }
       if (error instanceof NotFoundException) {
         throw new NotFoundException({
           statusCode: 404,
