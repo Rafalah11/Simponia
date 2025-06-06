@@ -88,7 +88,7 @@ export class ProfileUserService {
       throw new NotFoundException(`Profile dengan ID ${id} tidak ditemukan`);
     }
 
-    this.checkRoleIsMahasiswa(profile.user.role);
+    // this.checkRoleIsMahasiswa(profile.user.role);
 
     if (updateProfileUserDto.user_id) {
       const user = await this.userRepository.findOne({
