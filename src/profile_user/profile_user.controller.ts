@@ -42,7 +42,7 @@ export class ProfileUserController {
       ...FormData,
       user_id: req.user.id,
       tanggalLahir: new Date(FormData.tanggalLahir),
-      profilePicture: file, // Gunakan file langsung
+      profilePicture: file,
     };
 
     return this.profileUserService.create(createProfileDto);
@@ -55,9 +55,9 @@ export class ProfileUserController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthRequest,
   ) {
-    if (req.user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Hanya ADMIN yang bisa membuat profile');
-    }
+    // if (req.user.role !== UserRole.ADMIN) {
+    //   throw new ForbiddenException('Hanya ADMIN yang bisa membuat profile');
+    // }
 
     const newProfileDto = {
       ...createProfileUserDto,
@@ -74,9 +74,9 @@ export class ProfileUserController {
     //     'Hanya Mahasiswa yang dapat menampilkan informasi ini',
     //   );
     // }
-    if (req.user.role === UserRole.ADMIN) {
-      return this.profileUserService.findAll();
-    }
+    // if (req.user.role === UserRole.ADMIN) {
+    //   return this.profileUserService.findAll();
+    // }
     const profile = await this.profileUserService.findByUserId(req.user.id);
     if (!profile) {
       throw new NotFoundException('Anda belum memiliki profile');
@@ -89,9 +89,9 @@ export class ProfileUserController {
   async findOne(@Param('id') id: string, @Req() req: AuthRequest) {
     const profile = await this.profileUserService.findOne(id);
 
-    if (req.user.role !== UserRole.ADMIN && profile.user.id !== req.user.id) {
-      throw new ForbiddenException('Anda hanya bisa mengakses data sendiri');
-    }
+    // if (req.user.role !== UserRole.ADMIN && profile.user.id !== req.user.id) {
+    //   throw new ForbiddenException('Anda hanya bisa mengakses data sendiri');
+    // }
 
     return profile;
   }
@@ -104,20 +104,20 @@ export class ProfileUserController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthRequest,
   ) {
-    if (req.user.role === UserRole.ADMIN_COMMUNITY) {
-      throw new ForbiddenException(
-        'Hanya Mahasiswa yang dapat menampilkan informasi ini',
-      );
-    }
+    // if (req.user.role === UserRole.ADMIN_COMMUNITY) {
+    //   throw new ForbiddenException(
+    //     'Hanya Mahasiswa yang dapat menampilkan informasi ini',
+    //   );
+    // }
 
     const existingProfile = await this.profileUserService.findOne(id);
 
-    if (
-      req.user.role !== UserRole.ADMIN &&
-      existingProfile.user.id !== req.user.id
-    ) {
-      throw new ForbiddenException('Anda hanya bisa mengupdate data sendiri');
-    }
+    // if (
+    //   req.user.role !== UserRole.ADMIN &&
+    //   existingProfile.user.id !== req.user.id
+    // ) {
+    //   throw new ForbiddenException('Anda hanya bisa mengupdate data sendiri');
+    // }
 
     const updatedDto: UpdateProfileUserDto = {
       ...updateProfileUserDto,

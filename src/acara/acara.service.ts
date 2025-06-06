@@ -141,6 +141,7 @@ export class AcaraService {
             nim: anggotaUser.nim,
             jabatan: anggotaDto.jabatan,
             status: 'ABSENT',
+            // status: 'Tidak Hadir',
             kerjasama: anggotaDto.kerjasama,
             kedisiplinan: anggotaDto.kedisiplinan,
             komunikasi: anggotaDto.komunikasi,

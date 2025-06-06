@@ -11,7 +11,8 @@ export class AnggotaAcara1748698144005 implements MigrationInterface {
         nim VARCHAR(50) NULL,
         jabatan VARCHAR(100) NOT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        status ENUM('ABSENT', 'PERMISSION', 'PRESENT') DEFAULT 'PRESENT',
+        status ENUM('ABSENT', 'PERMISSION', 'PRESENT') DEFAULT 'ABSENT',
+        
         kerjasama INT NULL,               -- Nilai Kerjasama (0-100)
         kedisiplinan INT NULL,            -- Nilai Kedisiplinan (0-100)
         komunikasi INT NULL,              -- Nilai Komunikasi (0-100)
@@ -27,6 +28,7 @@ export class AnggotaAcara1748698144005 implements MigrationInterface {
           REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
       ) ENGINE=InnoDB;
     `);
+    // status ENUM('Tidak Hadir', 'Izin', 'Hadir') DEFAULT 'Tidak Hadir',
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

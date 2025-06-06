@@ -10,7 +10,7 @@ export class Acara1745801293977 implements MigrationInterface {
                     tanggal DATETIME NOT NULL,
                     jumlah_panitia INT NOT NULL,
                     skor INT NOT NULL,
-                    status ENUM('active', 'ongoing', 'finished') NOT NULL DEFAULT 'ongoing',
+                    status ENUM('Active', 'Ongoing', 'Finished') NOT NULL DEFAULT 'ongoing',
                     gambar VARCHAR(255) NULL,
                     deskripsi TEXT NULL,
                     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -22,6 +22,7 @@ export class Acara1745801293977 implements MigrationInterface {
                         REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE
                 ) ENGINE=InnoDB;
             `);
+    // status ENUM('Aktif', 'Sedang Berjalan', 'Selesai') NOT NULL DEFAULT 'Sedang Berjalan',
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
