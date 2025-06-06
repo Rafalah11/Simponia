@@ -18,8 +18,7 @@ export class Acara1745801293977 implements MigrationInterface {
                     PRIMARY KEY (id),
                     CONSTRAINT FK_acara_user FOREIGN KEY (id_user) 
                         REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
-                    CONSTRAINT FK_acara_ketua_pelaksana FOREIGN KEY (ketua_pelaksana) 
-                        REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE
+
                 ) ENGINE=InnoDB;
             `);
     // status ENUM('Aktif', 'Sedang Berjalan', 'Selesai') NOT NULL DEFAULT 'Sedang Berjalan',
