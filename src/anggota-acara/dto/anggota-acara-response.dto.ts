@@ -1,5 +1,11 @@
 import { IsString, IsDate, IsOptional, IsInt, IsEnum } from 'class-validator';
 import { UserRole } from '../../user/entities/user.entity';
+import { ApiProperty } from '@nestjs/swagger';
+
+export class ProfileIdDto {
+  @ApiProperty()
+  id: string;
+}
 
 class AcaraResponse {
   @IsString()
@@ -57,6 +63,9 @@ export class AnggotaAcaraResponseDto {
   @IsString()
   @IsOptional()
   id_user?: string;
+
+  @ApiProperty({ type: () => ProfileIdDto, nullable: true })
+  profile_id: { id: string } | null;
 
   @IsString()
   @IsOptional()
