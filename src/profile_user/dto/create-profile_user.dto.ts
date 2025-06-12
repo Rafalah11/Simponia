@@ -47,4 +47,7 @@ export class CreateProfileUserDto {
 
   @ApiProperty({ type: 'string', format: 'binary', required: false })
   profilePicture?: Express.Multer.File;
+
+  @ApiProperty({ required: false })
+  readonly verifiedPortfolioCount?: number;
 }

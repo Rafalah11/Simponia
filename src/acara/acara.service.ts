@@ -8,8 +8,8 @@ import { AcaraResponseDto } from './dto/acara-response.dto';
 import { User, UserRole } from '../user/entities/user.entity';
 import { AnggotaAcara } from '../anggota-acara/entities/anggota-acara.entity';
 import { ProfileUser } from '../profile_user/entities/profile_user.entity';
-import { ProfileAdmin } from '../profile_admin/entities/profile_admin.entity';
-import { ProfileAdminCommunity } from '../profile_admin-community/entities/profile_admin-community.entity';
+// import { ProfileAdmin } from '../profile_admin/entities/profile_admin.entity';
+// import { ProfileAdminCommunity } from '../profile_admin-community/entities/profile_admin-community.entity';
 import * as fs from 'fs';
 import { join } from 'path';
 
@@ -24,10 +24,6 @@ export class AcaraService {
     private anggotaAcaraRepository: Repository<AnggotaAcara>,
     @InjectRepository(ProfileUser)
     private profileUserRepository: Repository<ProfileUser>,
-    @InjectRepository(ProfileAdmin)
-    private profileAdminRepository: Repository<ProfileAdmin>,
-    @InjectRepository(ProfileAdminCommunity)
-    private profileAdminCommunityRepository: Repository<ProfileAdminCommunity>,
   ) {}
 
   private calculateGrade(average: number): string {
@@ -52,13 +48,13 @@ export class AcaraService {
       console.log(`ProfileUser found:`, profile);
       return profile?.nama || null;
     } else if (role === UserRole.ADMIN) {
-      const profile = await this.profileAdminRepository.findOne({
+      const profile = await this.profileUserRepository.findOne({
         where: { user: { id: userId } },
       });
       console.log(`ProfileAdmin found:`, profile);
       return profile?.nama || null;
     } else if (role === UserRole.ADMIN_COMMUNITY) {
-      const profile = await this.profileAdminCommunityRepository.findOne({
+      const profile = await this.profileUserRepository.findOne({
         where: { user: { id: userId } },
       });
       console.log(`ProfileAdminCommunity found:`, profile);

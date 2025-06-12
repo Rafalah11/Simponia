@@ -10,6 +10,7 @@ import {
   UseGuards,
   ForbiddenException,
   NotFoundException,
+  Put,
 } from '@nestjs/common';
 import { StatusVerifikasiService } from './status_verifikasi.service';
 import { CreateStatusVerifikasiDto } from './dto/create-status_verifikasi.dto';
@@ -63,10 +64,35 @@ export class StatusVerifikasiController {
     return result;
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateStatusVerifikasiDto: UpdateStatusVerifikasiDto) {
-  //   return this.statusVerifikasiService.update(+id, updateStatusVerifikasiDto);
-  // }
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateStatusVerifikasiDto: UpdateStatusVerifikasiDto,
+    @Req() req: AuthRequest,
+  ) {
+    if (
+      req.user.role !== UserRole.ADMIN &&
+      req.user.role !== UserRole.ADMIN_COMMUNITY
+    ) {
+      throw new ForbiddenException(
+        'Hanya Admin atau Admin Community yang dapat mengakses fitur ini!',
+      );
+    }
+    const uniqueId = parseInt(id, 10);
+    if (isNaN(uniqueId)) {
+      throw new NotFoundException('ID harus berupa angka');
+    }
+    const result = await this.statusVerifikasiService.update(
+      uniqueId,
+      updateStatusVerifikasiDto,
+    );
+    if (!result) {
+      throw new NotFoundException(
+        `Status verifikasi dengan ID ${uniqueId} tidak ditemukan`,
+      );
+    }
+    return result;
+  }
 
   // @Delete(':id')
   // remove(@Param('id') id: string) {

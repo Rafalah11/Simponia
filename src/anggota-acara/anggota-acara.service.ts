@@ -15,10 +15,11 @@ import { AuthRequest } from '../auth/interfaces/auth-request.interface';
 import {
   AnggotaAcaraResponseDto,
   DeleteAnggotaAcaraResponseDto,
+  ProfileIdDto,
 } from './dto/anggota-acara-response.dto';
 import { ProfileUser } from '../profile_user/entities/profile_user.entity';
-import { ProfileAdmin } from '../profile_admin/entities/profile_admin.entity';
-import { ProfileAdminCommunity } from '../profile_admin-community/entities/profile_admin-community.entity';
+// import { ProfileAdmin } from '../profile_admin/entities/profile_admin.entity';
+// import { ProfileAdminCommunity } from '../profile_admin-community/entities/profile_admin-community.entity';
 
 @Injectable()
 export class AnggotaAcaraService {
@@ -31,10 +32,6 @@ export class AnggotaAcaraService {
     private userRepository: Repository<User>,
     @InjectRepository(ProfileUser)
     private profileUserRepository: Repository<ProfileUser>,
-    @InjectRepository(ProfileAdmin)
-    private profileAdminRepository: Repository<ProfileAdmin>,
-    @InjectRepository(ProfileAdminCommunity)
-    private profileAdminCommunityRepository: Repository<ProfileAdminCommunity>,
   ) {}
 
   private calculateGrade(average: number): string {
@@ -50,32 +47,22 @@ export class AnggotaAcaraService {
     return `${grade} (${average.toFixed(2)})`;
   }
 
-  private async getProfileId(
+  private async getProfileData(
     userId: string,
     role: UserRole,
-  ): Promise<string | null> {
-    console.log(`Fetching profile ID for userId: ${userId}, role: ${role}`);
-    if (role === UserRole.MAHASISWA) {
-      const profile = await this.profileUserRepository.findOne({
-        where: { user: { id: userId } },
-      });
-      console.log(`ProfileUser found:`, profile);
-      return profile?.id || null;
-    } else if (role === UserRole.ADMIN) {
-      const profile = await this.profileAdminRepository.findOne({
-        where: { user: { id: userId } },
-      });
-      console.log(`ProfileAdmin found:`, profile);
-      return profile?.id || null;
-    } else if (role === UserRole.ADMIN_COMMUNITY) {
-      const profile = await this.profileAdminCommunityRepository.findOne({
-        where: { user: { id: userId } },
-      });
-      console.log(`ProfileAdminCommunity found:`, profile);
-      return profile?.id || null;
+  ): Promise<{ id: string; profile: ProfileUser }> {
+    console.log(`Fetching profile data for userId: ${userId}, role: ${role}`);
+    const profile = await this.profileUserRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+    console.log(`Profile found:`, profile);
+    if (!profile) {
+      throw new NotFoundException(
+        `Profile user untuk user ID ${userId} tidak ditemukan`,
+      );
     }
-    console.log(`No matching role for userId: ${userId}, role: ${role}`);
-    return null;
+    return { id: profile.id, profile };
   }
 
   async create(
@@ -148,7 +135,10 @@ export class AnggotaAcaraService {
     const savedAnggotaAcara =
       await this.anggotaAcaraRepository.save(anggotaAcara);
 
-    const profileId = await this.getProfileId(user.id, user.role);
+    const { id: profileId, profile } = await this.getProfileData(
+      user.id,
+      user.role,
+    );
 
     return {
       id: savedAnggotaAcara.id,
@@ -158,12 +148,18 @@ export class AnggotaAcaraService {
       created_by: {
         id: user.id,
         nim: user.nim,
-        role: user.role, // Convert role to string
+        role: user.role,
       },
-      profile_id: profileId ? { id: profileId } : null,
+      // profile_id: { id: profileId },
       id_user: savedAnggotaAcara.user?.id,
       nama: savedAnggotaAcara.nama,
       nim: savedAnggotaAcara.nim,
+      gender: profile.gender,
+      email: profile.email,
+      nama_komunitas: profile.namaKomunitas,
+      join_komunitas: profile.joinKomunitas,
+      divisi: profile.divisi,
+      posisi: profile.posisi,
       jabatan: savedAnggotaAcara.jabatan,
       status: savedAnggotaAcara.status,
       kerjasama: savedAnggotaAcara.kerjasama,
@@ -192,7 +188,7 @@ export class AnggotaAcaraService {
 
     return Promise.all(
       anggotaAcaraList.map(async (anggotaAcara) => {
-        const profileId = await this.getProfileId(
+        const { id: profileId, profile } = await this.getProfileData(
           anggotaAcara.user.id,
           anggotaAcara.user.role,
         );
@@ -204,12 +200,18 @@ export class AnggotaAcaraService {
           created_by: {
             id: anggotaAcara.user.id,
             nim: anggotaAcara.user.nim,
-            role: anggotaAcara.user.role, // Convert role to string
+            role: anggotaAcara.user.role,
           },
-          profile_id: profileId ? { id: profileId } : null,
+          // profile_id: { id: profileId },
           id_user: anggotaAcara.user?.id,
           nama: anggotaAcara.nama,
           nim: anggotaAcara.nim,
+          gender: profile.gender,
+          email: profile.email,
+          nama_komunitas: profile.namaKomunitas,
+          join_komunitas: profile.joinKomunitas,
+          divisi: profile.divisi,
+          posisi: profile.posisi,
           jabatan: anggotaAcara.jabatan,
           status: anggotaAcara.status,
           kerjasama: anggotaAcara.kerjasama,
@@ -248,7 +250,7 @@ export class AnggotaAcaraService {
       );
     }
 
-    const profileId = await this.getProfileId(
+    const { id: profileId, profile } = await this.getProfileData(
       anggotaAcara.user.id,
       anggotaAcara.user.role,
     );
@@ -261,12 +263,18 @@ export class AnggotaAcaraService {
       created_by: {
         id: anggotaAcara.user.id,
         nim: anggotaAcara.user.nim,
-        role: anggotaAcara.user.role, // Convert role to string
+        role: anggotaAcara.user.role,
       },
-      profile_id: profileId ? { id: profileId } : null,
+      // profile_id: { id: profileId },
       id_user: anggotaAcara.user?.id,
       nama: anggotaAcara.nama,
       nim: anggotaAcara.nim,
+      gender: profile.gender,
+      email: profile.email,
+      nama_komunitas: profile.namaKomunitas,
+      join_komunitas: profile.joinKomunitas,
+      divisi: profile.divisi,
+      posisi: profile.posisi,
       jabatan: anggotaAcara.jabatan,
       status: anggotaAcara.status,
       kerjasama: anggotaAcara.kerjasama,
@@ -388,7 +396,10 @@ export class AnggotaAcaraService {
     const savedAnggotaAcara =
       await this.anggotaAcaraRepository.save(anggotaAcara);
 
-    const profileId = await this.getProfileId(updatedUser.id, updatedUser.role);
+    const { id: profileId, profile } = await this.getProfileData(
+      updatedUser.id,
+      updatedUser.role,
+    );
 
     return {
       id: savedAnggotaAcara.id,
@@ -398,12 +409,18 @@ export class AnggotaAcaraService {
       created_by: {
         id: updatedUser.id,
         nim: updatedUser.nim,
-        role: updatedUser.role, // Convert role to string
+        role: updatedUser.role,
       },
-      profile_id: profileId ? { id: profileId } : null,
+      // profile_id: { id: profileId },
       id_user: savedAnggotaAcara.user?.id,
       nama: savedAnggotaAcara.nama,
       nim: savedAnggotaAcara.nim,
+      gender: profile.gender,
+      email: profile.email,
+      nama_komunitas: profile.namaKomunitas,
+      join_komunitas: profile.joinKomunitas,
+      divisi: profile.divisi,
+      posisi: profile.posisi,
       jabatan: savedAnggotaAcara.jabatan,
       status: savedAnggotaAcara.status,
       kerjasama: savedAnggotaAcara.kerjasama,

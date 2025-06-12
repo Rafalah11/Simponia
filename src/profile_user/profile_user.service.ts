@@ -73,7 +73,7 @@ export class ProfileUserService {
       throw new NotFoundException(`Profile dengan ID ${id} tidak ditemukan`);
     }
     if (profile.profilePicture) {
-      profile.profilePicture = `/uploads/user/${profile.profilePicture}`;
+      profile.profilePicture = `/Uploads/user/${profile.profilePicture}`;
     }
     return profile;
   }
@@ -156,8 +156,11 @@ export class ProfileUserService {
       where: { user: { id: userId } },
       relations: ['user'],
     });
-    if (profile && profile.profilePicture) {
-      profile.profilePicture = `/uploads/user/${profile.profilePicture}`;
+    if (!profile) {
+      return null;
+    }
+    if (profile.profilePicture) {
+      profile.profilePicture = `/Uploads/user/${profile.profilePicture}`;
     }
     return profile;
   }

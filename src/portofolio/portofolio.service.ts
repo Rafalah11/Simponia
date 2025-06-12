@@ -9,8 +9,8 @@ import { DetailProject } from '../detail-project/entities/detail-project.entity/
 import { Tag } from '../tags/entities/tag.entity/tag.entity';
 import { User, UserRole } from '../user/entities/user.entity';
 import { ProfileUser } from '../profile_user/entities/profile_user.entity';
-import { ProfileAdmin } from '../profile_admin/entities/profile_admin.entity';
-import { ProfileAdminCommunity } from '../profile_admin-community/entities/profile_admin-community.entity';
+// import { ProfileAdmin } from '../profile_admin/entities/profile_admin.entity';
+// import { ProfileAdminCommunity } from '../profile_admin-community/entities/profile_admin-community.entity';
 
 @Injectable()
 export class PortofolioService {
@@ -27,15 +27,11 @@ export class PortofolioService {
     private readonly tagRepository: Repository<Tag>,
     @InjectRepository(ProfileUser)
     private readonly profileUserRepository: Repository<ProfileUser>,
-    @InjectRepository(ProfileAdmin)
-    private readonly profileAdminRepository: Repository<ProfileAdmin>,
-    @InjectRepository(ProfileAdminCommunity)
-    private readonly profileAdminCommunityRepository: Repository<ProfileAdminCommunity>,
   ) {}
 
   private async getUserProfile(
     userId: string,
-    role: UserRole,
+    role?: UserRole,
   ): Promise<{
     nama: string | null;
     noHandphone: string | null;
@@ -44,50 +40,19 @@ export class PortofolioService {
     email: string | null;
     github: string | null;
   } | null> {
-    if (role === UserRole.MAHASISWA) {
-      const profile = await this.profileUserRepository.findOne({
-        where: { user: { id: userId } },
-      });
-      return profile
-        ? {
-            nama: profile.nama || null,
-            noHandphone: profile.noHandphone || null,
-            linkedin: profile.linkedin || null,
-            instagram: profile.instagram || null,
-            email: profile.email || null,
-            github: profile.github || null,
-          }
-        : null;
-    } else if (role === UserRole.ADMIN) {
-      const profile = await this.profileAdminRepository.findOne({
-        where: { user: { id: userId } },
-      });
-      return profile
-        ? {
-            nama: profile.nama || null,
-            noHandphone: profile.noHandphone || null,
-            linkedin: profile.linkedin || null,
-            instagram: profile.instagram || null,
-            email: profile.email || null,
-            github: profile.github || null,
-          }
-        : null;
-    } else if (role === UserRole.ADMIN_COMMUNITY) {
-      const profile = await this.profileAdminCommunityRepository.findOne({
-        where: { user: { id: userId } },
-      });
-      return profile
-        ? {
-            nama: profile.nama || null,
-            noHandphone: profile.noHandphone || null,
-            linkedin: profile.linkedin || null,
-            instagram: profile.instagram || null,
-            email: profile.email || null,
-            github: profile.github || null,
-          }
-        : null;
-    }
-    return null;
+    const profile = await this.profileUserRepository.findOne({
+      where: { user: { id: userId } },
+    });
+    return profile
+      ? {
+          nama: profile.nama || null,
+          noHandphone: profile.noHandphone || null,
+          linkedin: profile.linkedin || null,
+          instagram: profile.instagram || null,
+          email: profile.email || null,
+          github: profile.github || null,
+        }
+      : null;
   }
 
   async create(createPortofolioDto: CreatePortofolioDto, userId: string) {

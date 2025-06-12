@@ -66,6 +66,9 @@ export class ProfileUser {
   @Column({ length: 255, nullable: true })
   posisi: string;
 
+  @Column({ name: 'verified_portfolio_count', default: 0 })
+  verifiedPortfolioCount: number;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

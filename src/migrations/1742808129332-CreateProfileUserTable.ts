@@ -21,6 +21,7 @@ export class CreateProfileUserTable1742808129332 implements MigrationInterface {
                 divisi VARCHAR(255) NULL,
                 posisi VARCHAR(255) NULL,
                 profile_picture VARCHAR(255) NULL,
+                verified_portfolio_count INT DEFAULT 0,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (id),

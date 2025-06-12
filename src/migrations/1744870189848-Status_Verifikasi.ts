@@ -8,6 +8,7 @@ export class StatusVerifikasi1744870189848 implements MigrationInterface {
           id_portofolio char(36) NOT NULL,
           note text NULL,
           updated_by char(36) NOT NULL,
+          profile_user VARCHAR(255) NULL,
           updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY (UniqueID)
       );

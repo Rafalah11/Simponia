@@ -11,8 +11,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserRole } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { ProfileUser } from '../profile_user/entities/profile_user.entity';
-import { ProfileAdmin } from '../profile_admin/entities/profile_admin.entity';
-import { ProfileAdminCommunity } from '../profile_admin-community/entities/profile_admin-community.entity';
+// import { ProfileAdmin } from '../profile_admin/entities/profile_admin.entity';
+// import { ProfileAdminCommunity } from '../profile_admin-community/entities/profile_admin-community.entity';
 
 @Injectable()
 export class UserService {
@@ -21,10 +21,6 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(ProfileUser)
     private readonly profileUserRepository: Repository<ProfileUser>,
-    @InjectRepository(ProfileAdmin)
-    private readonly profileAdminRepository: Repository<ProfileAdmin>,
-    @InjectRepository(ProfileAdminCommunity)
-    private readonly profileAdminCommunityRepository: Repository<ProfileAdminCommunity>,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -67,12 +63,12 @@ export class UserService {
       });
       return profile?.nama || null;
     } else if (role === UserRole.ADMIN) {
-      const profile = await this.profileAdminRepository.findOne({
+      const profile = await this.profileUserRepository.findOne({
         where: { user: { id: id } },
       });
       return profile?.nama || null;
     } else if (role === UserRole.ADMIN_COMMUNITY) {
-      const profile = await this.profileAdminCommunityRepository.findOne({
+      const profile = await this.profileUserRepository.findOne({
         where: { user: { id: id } },
       });
       return profile?.nama || null;

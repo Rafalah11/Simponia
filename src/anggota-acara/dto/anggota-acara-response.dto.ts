@@ -64,16 +64,44 @@ export class AnggotaAcaraResponseDto {
   @IsOptional()
   id_user?: string;
 
-  @ApiProperty({ type: () => ProfileIdDto, nullable: true })
-  profile_id: { id: string } | null;
+  // @ApiProperty({ type: () => ProfileIdDto, nullable: true })
+  // profile_id: ProfileIdDto | null;
 
+  @ApiProperty()
+  @IsString()
+  nama: string;
+
+  @ApiProperty()
+  @IsString()
+  nim: string;
+
+  @ApiProperty({ enum: ['L', 'P'] })
+  @IsString()
+  gender: 'L' | 'P';
+
+  @ApiProperty()
+  @IsString()
+  email: string;
+
+  @ApiProperty({ required: false })
   @IsString()
   @IsOptional()
-  nama?: string;
+  nama_komunitas?: string;
 
+  @ApiProperty({ required: false })
+  @IsDate()
+  @IsOptional()
+  join_komunitas?: Date;
+
+  @ApiProperty({ required: false })
   @IsString()
   @IsOptional()
-  nim?: string;
+  divisi?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  posisi?: string;
 
   @IsString()
   jabatan: string;
@@ -81,10 +109,24 @@ export class AnggotaAcaraResponseDto {
   @IsString()
   status: string;
 
+  @IsInt()
+  @IsOptional()
   kerjasama?: number;
+
+  @IsInt()
+  @IsOptional()
   kedisiplinan?: number;
+
+  @IsInt()
+  @IsOptional()
   komunikasi?: number;
+
+  @IsInt()
+  @IsOptional()
   tanggung_jawab?: number;
+
+  @IsInt()
+  @IsOptional()
   nilai_rata_rata?: number;
 
   @IsString()

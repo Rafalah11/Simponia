@@ -25,4 +25,7 @@ export class UpdateProfileUserDto {
   @ApiProperty({ required: false })
   readonly posisi?: string;
   readonly profilePicture?: string;
+
+  @ApiProperty({ required: false })
+  readonly verifiedPortfolioCount?: number;
 }
